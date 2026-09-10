@@ -17,6 +17,7 @@ import {
 import { DelegationManager } from '@chronicle/delegation-manager';
 import { SequenceDetector } from '@chronicle/sequence-detector';
 import { WorkflowEngine } from '@chronicle/workflow-engine';
+import { BehaviorBaselineEngine } from '@chronicle/behavior-engine';
 
 export interface PolicyRule {
   id: string;
@@ -38,6 +39,7 @@ export class PolicyEngine {
   private delegationManager: DelegationManager;
   private sequenceDetector: SequenceDetector;
   private workflowEngine: WorkflowEngine;
+  private behaviorEngine: BehaviorBaselineEngine;
   private controlPlanePrivateKeyPem: string;
   private policyVersion: string = 'v1.4.0-enterprise';
   private customRules: PolicyRule[] = [];
@@ -48,16 +50,22 @@ export class PolicyEngine {
     delegationManager: DelegationManager,
     sequenceDetector: SequenceDetector,
     controlPlanePrivateKeyPem: string,
-    workflowEngine?: WorkflowEngine
+    workflowEngine?: WorkflowEngine,
+    behaviorEngine?: BehaviorBaselineEngine
   ) {
     this.delegationManager = delegationManager;
     this.sequenceDetector = sequenceDetector;
     this.controlPlanePrivateKeyPem = controlPlanePrivateKeyPem;
     this.workflowEngine = workflowEngine ?? new WorkflowEngine();
+    this.behaviorEngine = behaviorEngine ?? new BehaviorBaselineEngine();
   }
 
   public getWorkflowEngine(): WorkflowEngine {
     return this.workflowEngine;
+  }
+
+  public getBehaviorEngine(): BehaviorBaselineEngine {
+    return this.behaviorEngine;
   }
 
   public setKillSwitch(active: boolean): void {
@@ -291,8 +299,10 @@ export class PolicyEngine {
       };
     }
 
-    // 6. Compute Dynamic Risk Score
-    const { riskScore, riskClass } = this.calculateRiskScore(request, context, seqResult.anomalyScore);
+    // 6. Compute Dynamic Risk Score combining sequence and statistical behavioral anomalies (§18, §21, §76)
+    const behaviorAssessment = this.behaviorEngine.assessAnomaly(request, context);
+    const combinedAnomalyScore = Math.max(seqResult.anomalyScore, behaviorAssessment.anomalyScore);
+    const { riskScore, riskClass } = this.calculateRiskScore(request, context, combinedAnomalyScore);
 
     // 7. Step-Up Human Approval Check (HOLD)
     const approvalThreshold = constraints.requireApprovalAbove ?? 1000;

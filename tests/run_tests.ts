@@ -831,6 +831,48 @@ async function runTestSuite() {
     assert.strictEqual(report.passed, 2);
   });
 
+  console.log('\n\x1b[1m7. Statistical Behavioral Baselining & Advisory Anomaly Detection (§17, §18, §31, §63, §76)\x1b[0m');
+
+  await it('evaluates statistical Z-score deviations and reflects behavioral anomaly in risk scoring', async () => {
+    const cp = new ChronicleControlPlane();
+    const behaviorEngine = cp.policyEngine.getBehaviorEngine();
+
+    // Establish baseline: agent normally spends $100 ± $15
+    behaviorEngine.seedProfile('agent_finance_refund', {
+      tool: 'stripe_refund',
+      meanAmount: 100,
+      stdDevAmount: 15,
+      meanCallsPerHour: 8
+    });
+
+    // Sub-threshold transaction ($800 is below $1,000 auto-approval threshold, BUT is a 46-sigma outlier!)
+    const outlierReq: ActionRequest = {
+      actionId: 'act_behavior_outlier',
+      tenantId: 'tenant_acme',
+      sessionId: 'sess_b',
+      taskId: 'task_customer_refunds',
+      agentId: 'agent_finance_refund',
+      delegationId: 'del_finance_refund_root',
+      actionType: 'stripe_refund',
+      tool: 'stripe_refund',
+      resource: { id: 'charge_b', type: 'charge', sensitivity: 'CONFIDENTIAL', environment: 'production' },
+      parameters: { chargeId: 'charge_b', amount: 800, originalAmount: 1000 },
+      parametersHash: canonicalHash({ chargeId: 'charge_b', amount: 800, originalAmount: 1000 }),
+      timestamp: new Date().toISOString()
+    };
+
+    // Evaluate anomaly assessment directly
+    const assessment = behaviorEngine.assessAnomaly(outlierReq);
+    assert(assessment.anomalyDetected);
+    assert(assessment.zScoreAmount! > 4.0);
+    assert(assessment.anomalyScore >= 65);
+
+    // Evaluate action in Control Plane - risk score will be elevated due to combined anomaly
+    const decision = await cp.authorizeAction(outlierReq);
+    assert.strictEqual(decision.riskClass, 'CRITICAL');
+    assert(decision.riskScore >= 65);
+  });
+
   console.log(`\n\x1b[32m\x1b[1mALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!\x1b[0m\n`);
 }
 
