@@ -1,19 +1,8 @@
 <div align="center">
 
-```
-   ██████╗██╗  ██╗██████╗  ██████╗ ███╗   ██╗██╗ ██████╗██╗     ███████╗
-  ██╔════╝██║  ██║██╔══██╗██╔═══██╗████╗  ██║██║██╔════╝██║     ██╔════╝
-  ██║     ███████║██████╔╝██║   ██║██╔██╗ ██║██║██║     ██║     █████╗  
-  ██║     ██╔══██║██╔══██╗██║   ██║██║╚██╗██║██║██║     ██║     ██╔══╝  
-  ╚██████╗██║  ██║██║  ██║╚██████╔╝██║ ╚████║██║╚██████╗███████╗███████╗
-   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝ ╚═════╝╚══════╝╚══════╝
-```
+<img src="./assets/chronicle-banner.svg" alt="Chronicle AACT Banner" width="100%" />
 
-# CHRONICLE (AACT)
-### **Autonomous Action Control Plane for AI Agents**
-#### *Behavior-Aware, Sequence-Aware Authorization & Runtime Side-Effect Control Kernel*
-
-<br/>
+<br/><br/>
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.6.0-22c55e.svg?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Native%20Strip--Types-3178c6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -26,9 +15,16 @@
 [![Architect](https://img.shields.io/badge/Architect-Swaraj-ec4899.svg?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 
-<br/>
+<br/><br/>
 
-**[Explore Documentation](#table-of-contents)** • **[Quickstart](#19-quickstart--local-deployment-guide)** • **[Architecture God Diagram](#3-high-level-system-topology)** • **[Attack Suite](#15-adversarial-attack-neutralization-matrix-1414-verified)** • **[REST API Reference](#17-complete-rest-api-reference)** • **[Contributing](#20-contributing-to-chronicle-community-rfcs--pull-requests)**
+<p align="center">
+  <a href="#table-of-contents"><img src="https://img.shields.io/badge/📖_Table_of_Contents-0f172a?style=flat-square" alt="TOC" /></a>
+  <a href="#3-high-level-system-topology"><img src="https://img.shields.io/badge/🏛️_Architecture-0f172a?style=flat-square" alt="Architecture" /></a>
+  <a href="#11-adversarial-attack-neutralization-matrix-1414-verified"><img src="https://img.shields.io/badge/🛡️_Attack_Matrix-0f172a?style=flat-square" alt="Attack Matrix" /></a>
+  <a href="#9-complete-rest-api-reference"><img src="https://img.shields.io/badge/⚡_REST_API-0f172a?style=flat-square" alt="REST API" /></a>
+  <a href="#13-quickstart--local-deployment-guide"><img src="https://img.shields.io/badge/🚀_Quickstart-0f172a?style=flat-square" alt="Quickstart" /></a>
+  <a href="#15-contributing-to-chronicle-community-rfcs--pull-requests"><img src="https://img.shields.io/badge/🤝_Contributing-0f172a?style=flat-square" alt="Contributing" /></a>
+</p>
 
 ---
 
@@ -610,21 +606,28 @@ $$\text{Signature}_i = \text{Sign}_{\text{Ed25519}}\left(\mathcal{H}_i, \;\text{
 ## 6. Deep-Dive Subsystem Specifications
 
 ### 6.1 Delegation Engine & Monotonic Narrowing (`packages/delegation-manager`)
+> 📦 **Package**: `@chronicle/delegation-manager` • 🛡️ **Layer**: `Ring 1 Kernel` • 📐 **Invariant**: $D_c \sqsubseteq D_p$
+
 - **Monotonic Narrowing Validator**: Recursively checks that every child delegation strictly shrinks or maintains the parent's permissions.
 - **Cascading Revocation**: When a human sponsor or security officer revokes delegation $D_i$, a Breadth-First Search (BFS) traverses the delegation hierarchy and instantly revokes all descendant delegations ($D_{i+1} \dots D_{i+n}$).
 - **Intent Drift Guard**: Compares the declared task purpose with the requested tool to prevent unauthorized scope creep.
 
 ### 6.2 Cryptographic Primitives & Grant Issuance (`packages/crypto-primitives`)
+> 📦 **Package**: `@chronicle/crypto-primitives` • 🛡️ **Layer**: `Ring 1 Kernel` • 🔐 **Standards**: `RFC 8032 (Ed25519) • RFC 8785 (JCS)`
+
 - **Ed25519 Signatures**: Uses RFC 8032 curve keys with high-performance cryptographic operations (10,400+ signs/sec).
 - **RFC 8785 JCS Engine**: Canonicalizes arbitrary JSON objects by sorting keys lexicographically and normalizing number encodings.
 - **Merkle Ledger Integrity**: Traverses receipt blocks and recomputes the hash chain to mathematically prove that no historical records have been inserted, omitted, or altered.
 
 ### 6.3 Sequence Detector & Invariant Engine (`packages/sequence-detector`)
+> 📦 **Package**: `@chronicle/sequence-detector` • 🛡️ **Layer**: `Ring 1 Kernel` • 🔄 **Model**: `Deterministic Finite Automata (DFA)`
+
 - **Deterministic Finite Automaton (DFA)**: Tracks the active security state of every agent session.
 - **Prerequisite Enforcement**: Mandates that high-impact actions (e.g. `execute_wire_transfer`) cannot execute unless prerequisite verification actions (e.g. `verify_identity`, `dual_approval`) have occurred in the exact same session.
 - **Exfiltration Tripwires**: Enforces immediate isolation if sensitive data reading is followed by outbound transmission tools.
 
 ### 6.4 Formal Workflow Engine & State Machine (`packages/workflow-engine`)
+> 📦 **Package**: `@chronicle/workflow-engine` • 🛡️ **Layer**: `Ring 1 Kernel` • ⚖️ **Model**: `Formal Business State Machine`
 
 ```mermaid
 flowchart TD
@@ -648,38 +651,54 @@ flowchart TD
   - *Separation of Duties*: The creator of an invoice cannot be the approver of the invoice.
 
 ### 6.5 Behavioral Profiling Engine (`packages/behavior-engine`)
+> 📦 **Package**: `@chronicle/behavior-engine` • 🛡️ **Layer**: `Ring 1 Kernel` • 📈 **Algorithm**: `Streaming Gaussian Welford (Z-Score)`
+
 - **Streaming Baselines**: Computes statistical parameters per tool using streaming algorithms with $O(1)$ space complexity.
 - **Z-Score Anomaly Detection**: Quantifies deviation from typical transaction values.
 - **Entropy Scoring**: Flags sudden changes in tool invocation variety compared to baseline profiles.
 
 ### 6.6 Declarative Policy DSL & Shadow Comparator (`packages/policy-dsl`)
+> 📦 **Package**: `@chronicle/policy-dsl` • 🛡️ **Layer**: `Ring 1 Kernel` • 📜 **Grammar**: `EBNF Parser & DNF Boolean Compiler`
+
 - **Human-Readable Policy Syntax**: Clean, intuitive security policy declarations.
 - **Boolean Operators**: Native support for `AND`, `OR`, and `NOT` clauses with Disjunctive Normal Form evaluation.
 - **Shadow Policy Comparator**: Replays proposed policy updates against hundreds of thousands of historical audit receipts to calculate concordance rates and detect unintended privilege expansions before deployment.
 
 ### 6.7 Observation Mode & Shadow Telemetry (`packages/observation`)
+> 📦 **Package**: `@chronicle/observation` • 🛡️ **Layer**: `Ring 1 Kernel` • 👁️ **Mode**: `Zero-Disruption Shadow Audit`
+
 - **Dual Operating Modes**: Switchable at runtime via API or CLI.
 - **Zero-Disruption Auditing**: In Observation Mode, violations are transformed to `ALLOW` for safe integration testing while generating full shadow decision logs and Prometheus metrics.
 
 ### 6.8 AI Policy Assistant & NLP Synthesis (`packages/ai`)
+> 📦 **Package**: `@chronicle/ai` • 🛡️ **Layer**: `Ring 2 Gateway` • 🤖 **Intelligence**: `Rule-Based NLP & Safety Gates (§61)`
+
 - **Natural Language Translation**: Synthesizes formal declarative PolicyASTs from plain-English security requirements.
 - **Plain-English Explanations**: Generates human-readable explanations of complex authorization decisions for auditors.
 - **Mandatory Safety Gates (§61)**: Validates synthesized policies to block dangerous wildcards (`*`) and unconstrained amounts.
 
 ### 6.9 Topological Blast Radius & Lateral Movement Engine (`packages/blast-radius`)
+> 📦 **Package**: `@chronicle/blast-radius` • 🛡️ **Layer**: `Ring 1 Kernel` • 🕸️ **Model**: `Reachability Graph & Lateral Percolation`
+
 - **Reachability Analysis**: Computes the complete set of tools, resources, and systems an agent could compromise.
 - **Worst-Case Financial Exposure**: Calculates the maximum financial liability bounded by the delegation envelope.
 - **Lateral Movement Percolation (`computeAttackPaths`)**: Uses graph traversal algorithms to trace multi-hop lateral movement pathways.
 
 ### 6.10 Merkle Audit Ledger & Provenance DAG (`packages/audit-ledger`)
+> 📦 **Package**: `@chronicle/audit-ledger` • 🛡️ **Layer**: `Ring 1 Kernel` • ⛓️ **Standard**: `RFC 6962 Merkle Tree & Provenance DAG`
+
 - **Tamper-Evident Receipts**: Commits every evaluated action to a cryptographically sealed Merkle chain.
 - **Provenance Directed Acyclic Graph (DAG)**: Constructs a complete causal lineage graph tracing actions back to delegations, tasks, and human sponsors.
 
 ### 6.11 Enterprise Identity & OIDC Federation Bridge (`packages/integrations`)
+> 📦 **Package**: `@chronicle/integrations` • 🛡️ **Layer**: `Ring 0 -> Ring 1` • 🌐 **Identity**: `Microsoft Entra ID • Okta • Google Workspace`
+
 - **Enterprise IDP Federation**: Bridges Microsoft Entra ID (Azure AD), Okta, and Google Workspace into Chronicle.
 - **Cryptographic Trust Boundary**: Validates enterprise RS256 JWTs and maps claims to `HumanSponsor` records while keeping internal agent authorization bound to Ed25519 keypairs.
 
 ### 6.12 Distributed Persistence Adapter & Database Migrations (`packages/persistence`)
+> 📦 **Package**: `@chronicle/persistence` • 🛡️ **Layer**: `Storage Tier` • 🗄️ **Engines**: `Dual-Mode Memory • PostgreSQL • Redis`
+
 - **Dual-Mode Persistence**: Seamlessly switches between in-memory collections (for sub-millisecond edge testing) and PostgreSQL storage.
 - **Relational Schema Migrations**:
   - `001_initial_schema.sql`: Core tables for tenants, agents, delegations, grants, receipts, and audit logs.
@@ -687,6 +706,8 @@ flowchart TD
 - **Redis Hot Cache**: Caches hot delegations and active session states for fast lookup.
 
 ### 6.13 Developer Client SDK & Grant Verification Kernel (`packages/sdk`)
+> 📦 **Package**: `@chronicle/sdk` • 🛡️ **Layer**: `Ring 2 Gateway` • ⚡ **Performance**: `Local Verification (<100 μs)`
+
 - **Anti-TOCTOU Verification**: Provides microservice middlewares to verify incoming `X-Chronicle-Grant` tokens locally before executing tool logic.
 - **Zero External Network Overhead**: Recomputes canonical parameter hashes and verifies Ed25519 signatures in under 100 microseconds.
 
@@ -695,19 +716,27 @@ flowchart TD
 ## 7. Application Tier Overview
 
 ### 7.1 Central Control Plane Server (:3000)
+> 🚀 **App**: `apps/control-plane` • 🌐 **Port**: `:3000` • 📡 **Protocol**: `HTTP/1.1 REST (14 Endpoints) + WebSockets`
+
 - Exposes 14 REST endpoints for authorization decisions, delegation management, agent quarantine, and audit verification.
 - Houses the zero-trust evaluation pipeline and Merkle ledger commit logic.
 - Serves the Enterprise Cybersecurity Web Console on `http://localhost:3000/`.
 
 ### 7.2 Model Context Protocol (MCP) Security Gateway (:3001)
+> 🚀 **App**: `apps/mcp-gateway` • 🌐 **Port**: `:3001` • 📡 **Protocol**: `JSON-RPC 2.0 (Model Context Protocol)`
+
 - Reverse proxy implementing JSON-RPC 2.0 protocol translation for the Model Context Protocol (MCP).
 - Intercepts agent `tools/call` invocations, canonicalizes arguments, queries the Control Plane, and forwards permitted calls with cryptographic grant headers.
 
 ### 7.3 Unified Command-Line Interface (`aact`)
+> 🚀 **App**: `apps/cli` • 💻 **Binary**: `aact` • ⚙️ **Capabilities**: `15 Operational Subcommands`
+
 - 15 operational subcommands for security administrators, DevOps engineers, and security analysts.
 - Inspects system status, toggles operating modes, verifies Merkle chains, and manages agent quarantines.
 
 ### 7.4 Enterprise Cybersecurity Web Console
+> 🚀 **App**: `apps/control-plane/public` • 🖥️ **Interface**: `Web Console` • 📊 **Panels**: `7 Real-Time Security Consoles`
+
 - 7 comprehensive panels providing live visibility into agent actions, step-up approvals, policy management, shadow comparisons, behavioral analytics, agent registries, and the cryptographic provenance DAG.
 
 ---
