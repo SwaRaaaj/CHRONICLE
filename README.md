@@ -78,11 +78,13 @@
 - [11. Adversarial Attack Neutralization Matrix (14/14 Verified)](#11-adversarial-attack-neutralization-matrix-1414-verified)
 - [12. Empirical Performance & Latency Benchmarks](#12-empirical-performance--latency-benchmarks)
 - [13. Quickstart & Local Deployment Guide](#13-quickstart--local-deployment-guide)
-- [14. Production Deployment & Kubernetes Configuration](#14-production-deployment--kubernetes-configuration)
-- [15. Contributing to Chronicle: Community RFCs & Pull Requests](#15-contributing-to-chronicle-community-rfcs--pull-requests)
-- [16. Security Vulnerability Disclosure Policy](#16-security-vulnerability-disclosure-policy)
-- [17. Frequently Asked Questions (FAQ)](#17-frequently-asked-questions-faq)
-- [18. License & Attribution](#18-license--attribution)
+- [14. Enterprise Web Console & Control Gateway](#14-enterprise-web-console--control-gateway)
+- [15. Frontend Architectural Alternatives & Comparison Matrix](#15-frontend-architectural-alternatives--comparison-matrix)
+- [16. Production Deployment & Kubernetes Configuration](#16-production-deployment--kubernetes-configuration)
+- [17. Contributing to Chronicle: Community RFCs & Pull Requests](#17-contributing-to-chronicle-community-rfcs--pull-requests)
+- [18. Security Vulnerability Disclosure Policy](#18-security-vulnerability-disclosure-policy)
+- [19. Frequently Asked Questions (FAQ)](#19-frequently-asked-questions-faq)
+- [20. License & Attribution](#20-license--attribution)
 
 ---
 
@@ -980,7 +982,187 @@ Navigate to **`http://localhost:3000/`** to interact with the **Chronicle Enterp
 
 ---
 
-## 14. Production Deployment & Kubernetes Configuration
+## 14. Enterprise Web Console & Control Gateway
+
+Chronicle includes a built-in, zero-dependency, high-performance web console served directly from the control plane kernel (`http://localhost:3000/`). Designed with a dark cybernetic aesthetic, modern glassmorphism, and responsive micro-animations, it provides complete visual governance across all 10 core control plane modules:
+
+```mermaid
+flowchart TD
+    subgraph UI["Chronicle Enterprise Web Console (http://localhost:3000)"]
+        direction TB
+        M1["🚀 Action Sandbox & Dispatcher<br/>(Live Invocations, Presets, Token Inspector)"]
+        M2["🛡️ 14/14 Attack Studio<br/>(One-Click Pen-Test Suite & Telemetry)"]
+        M3["📡 Action Telemetry Feed<br/>(Zero-Bypass Intercept Stream & Filters)"]
+        M4["🛑 Step-Up Approvals Desk<br/>(Human-in-the-Loop Cryptographic Sign-Off)"]
+        M5["💥 Blast Radius Visualizer<br/>(Percolation Analysis & Dijkstra Paths)"]
+        M6["📊 Behavioral Anomaly Radar<br/>(Gaussian Distributions & Outlier Alerts)"]
+        M7["📜 Policy DSL Studio<br/>(Declarative Syntax Editor & AST Compiler)"]
+        M8["⚖️ Shadow Policy Comparator<br/>(Historical Replay & Divergence Matrix)"]
+        M9["👥 Agent Fleet Registry<br/>(Capability Matrix & Instant Quarantine)"]
+        M10["🔗 Merkle Audit & DAG<br/>(Causal Graph Traversal & Integrity Audit)"]
+    end
+
+    subgraph API["Chronicle Control Plane REST API (:3000)"]
+        direction LR
+        EP1["POST /api/v1/authorize"]
+        EP2["POST /api/v1/simulate/attack"]
+        EP3["GET /api/v1/attacks"]
+        EP4["GET /api/v1/audit/verify"]
+        EP5["POST /api/v1/policies/compile"]
+        EP6["POST /api/v1/kill-switch"]
+    end
+
+    M1 --> EP1
+    M2 --> EP2
+    M2 --> EP3
+    M10 --> EP4
+    M7 --> EP5
+    M9 --> EP6
+```
+
+### The 10 Enterprise Control Modules
+
+| # | Enterprise Module | Operational Purpose & Security Capabilities | Primary API Endpoint |
+|:---:|---|---|---|
+| **1** | 🚀 **Action Sandbox & Dispatcher** | Interactive test bench to build and dispatch tool requests. Features one-click presets (Legitimate $50 Refund, $3,500 High-Value Refund, PII Exfiltration, Unauthorized Wire, Smurfing Probe), dynamic risk gauge, and single-use Ed25519 token inspector. | `POST /api/v1/authorize` |
+| **2** | 🛡️ **14/14 Adversarial Attack Studio** | Live pen-test simulator executing all 14 attack vectors. Includes master *"RUN ALL 14 PEN-TEST ATTACKS"* button, live progress bar, MITRE ATT&CK mappings, and real-time cryptographic evidence display. | `POST /api/v1/simulate/attack`<br/>`GET /api/v1/attacks` |
+| **3** | 📡 **Action Telemetry Feed** | Real-time audit stream of every intercepted agent action with multi-filter gating (`ALLOW`, `HOLD`, `DENY`), execution latency in microseconds, and one-click Provenance DAG tracing. | `GET /api/v1/audit/receipts`<br/>`GET /api/v1/actions` |
+| **4** | 🛑 **Step-Up Approvals Desk** | Human-in-the-loop review queue for suspended `HOLD` actions. Allows security sponsors to inspect parameters, review policy justification, and issue cryptographic grants or signed rejections. | `GET /api/v1/approvals`<br/>`POST /api/v1/approvals/:id/decide` |
+| **5** | 💥 **Blast Radius Visualizer** | Graph percolation analyzer that computes downstream sensitive resources, cumulative monetary exposure bounds ($), and Dijkstra multi-hop lateral attack paths if an agent were compromised. | `POST /api/v1/simulate/agent`<br/>`POST /api/v1/simulate/attack-path` |
+| **6** | 📊 **Behavioral Baselines & Radar** | Real-time statistical profiler tracking sliding-window invocation entropy, Gaussian tool monetary distributions ($\mu \pm \sigma$), and automated security incident alerts ($Z > 3.0$). | `GET /api/v1/behavior/:agentId`<br/>`GET /api/v1/incidents` |
+| **7** | 📜 **Policy DSL Studio & Compiler** | In-browser declarative policy authoring with real-time compilation to AST, syntax validation, and pre-loaded security templates (DLP, Kubernetes Production Guard, Financial Safety). | `POST /api/v1/policies/compile` |
+| **8** | ⚖️ **Shadow Policy Comparator** | Automated regression comparator that replays draft candidate policies across historical Merkle receipts, calculating concordance rate (%) and identifying dangerous privilege expansions before deployment. | `POST /api/v1/policies/shadow` |
+| **9** | 👥 **Agent Fleet Registry** | Complete inventory of registered AI agents, model providers, risk tiers, allowed tool capabilities, and real-time one-click quarantine kill-switch isolation. | `GET /api/v1/agents`<br/>`POST /api/v1/kill-switch` |
+| **10** | 🔗 **Merkle Audit & Provenance DAG** | Visual block explorer verifying forward-secure Ed25519 receipt chains, middle-chain tamper detection, and interactive causal DAG tracing from sponsor delegation down to issued grant token. | `GET /api/v1/audit/verify`<br/>`GET /api/v1/actions/:id/provenance` |
+
+---
+
+## 15. Frontend Architectural Alternatives & Comparison Matrix
+
+Depending on an organization's deployment environment, team structure, and security operations workflow, Chronicle supports **four distinct frontend architectures**:
+
+```mermaid
+flowchart TD
+    Core["Chronicle AACT Control Plane Core Engine (:3000)"]
+
+    subgraph Alt1["Alternative 1: Embedded Zero-Dependency Console (Default)"]
+        A1["Single HTML/CSS/JS Shell<br/>• Sub-10ms bootstrap<br/>• Zero npm build dependencies<br/>• Served directly by control plane"]
+    end
+
+    subgraph Alt2["Alternative 2: Enterprise React 19 / Next.js 15 SOC App"]
+        A2["Next.js App Router + Tailwind CSS<br/>• Multi-tenant RBAC & OIDC SSO<br/>• Cytoscape.js / React Flow DAGs<br/>• TanStack Query WebSocket feed"]
+    end
+
+    subgraph Alt3["Alternative 3: Headless Terminal TUI (SRE / DevOps)"]
+        A3["Ink / Blessed / Bubbletea CLI<br/>• Zero browser overhead<br/>• Native SSH / tmux split execution<br/>• Keyboard-driven kill-switch hotkeys"]
+    end
+
+    subgraph Alt4["Alternative 4: Cloud-Native SIEM & Grafana / Datadog"]
+        A4["OpenTelemetry + PromQL + SIEM<br/>• Native OTel collector export<br/>• PagerDuty incident routing<br/>• Unified corporate SOC visibility"]
+    end
+
+    Core --> Alt1
+    Core --> Alt2
+    Core --> Alt3
+    Core --> Alt4
+```
+
+### Architectural Comparison & Trade-Off Matrix
+
+| Feature / Metric | Option 1: Embedded Console (Default) | Option 2: Enterprise Next.js 15 App | Option 3: Terminal TUI (Ink/Blessed) | Option 4: OpenTelemetry + Grafana |
+|---|:---:|:---:|:---:|:---:|
+| **Target User** | Platform Engineers, Developers, Evaluators | Enterprise SOC Analysts, Compliance Officers | SREs, DevOps Engineers, Terminal Purists | Cloud SecOps, Enterprise Threat Hunting |
+| **Client Tech Stack** | Vanilla HTML5 / CSS3 / ES2024 | Next.js 15, React 19, Tailwind, shadcn/ui | Node.js (Ink / Blessed) or Go (Bubbletea) | Prometheus, Grafana, OpenTelemetry |
+| **Client Bundle Size** | **0 KB** (Single file, no node_modules) | ~250 KB - 450 KB (gzipped JS) | ~15 MB executable / CLI wrapper | Standard Grafana browser assets |
+| **Initial Load Latency** | **< 10 ms** (instantaneous) | ~150 ms - 300 ms | **< 20 ms** in terminal | ~500 ms - 1,200 ms |
+| **Deployment Footprint** | Built directly into Control Plane binary | Separate Vercel/K8s frontend deployment | Run locally or via SSH session | Deployed via Helm charts / cloud monitoring |
+| **Supply Chain Attack Surface**| **Zero external client dependencies** | Standard React npm package dependency tree | Minimal CLI npm dependencies | Enterprise monitoring agent footprint |
+| **Best Used For** | Rapid prototyping, air-gapped environments, turnkey demo | Enterprise multi-tenant production consoles | Headless CI/CD runners, production bastion hosts | Centralized enterprise security monitoring |
+
+---
+
+### Detailed Implementation Guide for Frontend Alternatives
+
+#### Alternative 2: Enterprise Next.js 15 / React 19 SOC Dashboard Setup
+For organizations requiring enterprise Single Sign-On (OIDC/SAML), role-based view controls, and complex node graph visualization:
+
+```bash
+# Initialize dedicated enterprise frontend application
+npx -y create-next-app@latest apps/enterprise-console --typescript --tailwind --eslint --app --src-dir
+
+# Install visualization and query primitives
+cd apps/enterprise-console
+npm install @tanstack/react-query lucide-react @xyflow/react clsx tailwind-merge
+```
+
+**Recommended Directory Scaffolding:**
+```text
+apps/enterprise-console/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/login/page.tsx           # Enterprise OIDC / Okta SSO
+│   │   ├── (dashboard)/
+│   │   │   ├── telemetry/page.tsx          # Virtualized live action stream
+│   │   │   ├── attacks/page.tsx            # 14/14 Pen-Test Studio with sound/animation
+│   │   │   ├── blast-radius/page.tsx       # React Flow interactive graph canvas
+│   │   │   ├── policies/page.tsx           # Monaco editor for Policy DSL
+│   │   │   └── approvals/page.tsx          # Dual-custody step-up review desk
+│   │   └── layout.tsx                      # Cybersecurity dark-mode root layout
+│   ├── components/
+│   │   ├── ui/                             # shadcn/ui atomic components
+│   │   ├── ProvenanceGraphCanvas.tsx       # React Flow cryptographic DAG visualizer
+│   │   └── RiskTensorGauge.tsx             # Canvas-rendered 0-100 risk speedometer
+│   └── lib/
+│       └── chronicle-client.ts             # Typed wrapper around Control Plane REST API
+```
+
+#### Alternative 3: Headless SRE / DevOps Terminal TUI Setup
+For air-gapped data centers, production bastions, and CLI engineers:
+
+```bash
+# Run Chronicle's built-in interactive CLI
+npm run aact -- status
+
+# Stream live action decisions directly in the terminal
+npm run aact -- audit verify
+```
+
+To build a full-screen interactive terminal dashboard, use [Ink](https://github.com/vadimdemedes/ink) (React for CLI):
+```tsx
+import React, { useState, useEffect } from 'react';
+import { render, Box, Text, useInput } from 'ink';
+
+const ChronicleTui = () => {
+  const [status, setStatus] = useState({ mode: 'ENFORCEMENT', totalActions: 0 });
+
+  useInput((input, key) => {
+    if (input === 'k') {
+      // Trigger emergency kill-switch via keyboard hotkey
+      fetch('http://localhost:3000/api/v1/kill-switch', { method: 'POST' });
+    }
+  });
+
+  return (
+    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1}>
+      <Text bold color="green">CHRONICLE AACT TERMINAL CONTROL DESK</Text>
+      <Text>Operating Mode: <Text color="yellow">{status.mode}</Text></Text>
+      <Text color="gray">Press [k] to toggle Global Emergency Kill-Switch</Text>
+    </Box>
+  );
+};
+
+render(<ChronicleTui />);
+```
+
+#### Alternative 4: OpenTelemetry & Cloud-Native SIEM Integration
+For enterprise security operations centers running Datadog, Splunk, or Prometheus/Grafana:
+1. Export Prometheus metrics from `http://localhost:3000/api/v1/status`.
+2. Configure Grafana alerts on `chronicle_kill_switch_active == 1` or `chronicle_anomaly_z_score > 3.0`.
+3. Ingest Merkle ledger receipts directly into Splunk or AWS Security Lake for long-term SOC 2 / HIPAA compliance audits.
+
+---
+
+## 16. Production Deployment & Kubernetes Configuration
 
 For production enterprise deployments, Chronicle is packaged as lightweight, multi-stage container images:
 
@@ -1031,7 +1213,7 @@ spec:
 
 ---
 
-## 15. Contributing to Chronicle: Community RFCs & Pull Requests
+## 17. Contributing to Chronicle: Community RFCs & Pull Requests
 
 We welcome contributions from systems engineers, cryptographers, AI researchers, and cybersecurity architects!
 
@@ -1046,7 +1228,7 @@ Refer to [`CONTRIBUTING.md`](CONTRIBUTING.md) for full pull request submission g
 
 ---
 
-## 16. Security Vulnerability Disclosure Policy
+## 18. Security Vulnerability Disclosure Policy
 
 If you discover a security vulnerability or bypass in Chronicle's zero-trust kernel, please **do not open a public GitHub issue**.
 
@@ -1056,7 +1238,7 @@ Directly contact our security architecture team:
 
 ---
 
-## 17. Frequently Asked Questions (FAQ)
+## 19. Frequently Asked Questions (FAQ)
 
 <details>
 <summary><b>Why not use standard AWS IAM or OAuth 2.0 scopes?</b></summary>
@@ -1084,7 +1266,7 @@ Chronicle uses RFC 8785 JSON Canonicalization Scheme (JCS) to hash parameters de
 
 ---
 
-## 18. License & Attribution
+## 20. License & Attribution
 
 - **Founder & Principal Systems Architect:** **Swaraj**  
 - **Project:** Chronicle Autonomous Action Control Plane (AACT)  
