@@ -93,21 +93,15 @@ html {
   100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
 }
 
-/* Animate-on-scroll base state */
-.anim-reveal {
+/* Animate-on-scroll — only applied after JS adds .io-ready class to html */
+html.io-ready .anim-reveal {
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1), transform 0.75s cubic-bezier(0.16,1,0.3,1);
 }
-.anim-reveal.anim-left {
-  transform: translateX(-28px);
-}
-.anim-reveal.anim-right {
-  transform: translateX(28px);
-}
-.anim-reveal.anim-scale {
-  transform: scale(0.93);
-}
+html.io-ready .anim-reveal.anim-left { transform: translateX(-28px); }
+html.io-ready .anim-reveal.anim-right { transform: translateX(28px); }
+html.io-ready .anim-reveal.anim-scale { transform: scale(0.93); }
 .anim-reveal.visible {
   opacity: 1 !important;
   transform: none !important;
@@ -119,6 +113,13 @@ html {
 .anim-d4 { transition-delay: 0.35s !important; }
 .anim-d5 { transition-delay: 0.45s !important; }
 .anim-d6 { transition-delay: 0.55s !important; }
+
+/* === HERO SECTION ENTRANCE (CSS-driven, no JS needed) === */
+.hero-eyebrow { animation: fadeInUp 0.7s 0.1s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-title    { animation: fadeInUp 0.8s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-sub      { animation: fadeInUp 0.8s 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-ctas     { animation: fadeInUp 0.8s 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.scroll-indicator { animation: fadeInUp 0.8s 0.85s cubic-bezier(0.16,1,0.3,1) both; }
 html.in-console {
   scroll-snap-type: none !important;
 }
@@ -290,9 +291,9 @@ body {
   font-style: italic;
   letter-spacing: -0.01em;
 }
-/* Floating card on hero */
+/* Floating card on hero — delayed so it starts after fadeInUp */
 .hero-stats {
-  animation: floatY 5s ease-in-out infinite;
+  animation: fadeInUp 0.9s 0.65s cubic-bezier(0.16,1,0.3,1) both, floatY 5s 1.5s ease-in-out infinite;
 }
 /* Particle Canvas overlay */
 #particleCanvas {
@@ -4318,16 +4319,27 @@ window.addEventListener('resize', () => {
    SCROLL REVEAL — IntersectionObserver
    ========================================================= */
 function initScrollReveal() {
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(en => {
-      if (en.isIntersecting) {
-        en.target.classList.add('visible');
-        obs.unobserve(en.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  // Mark html so CSS opacity:0 rules activate AFTER a frame (prevents flash)
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add('io-ready');
 
-  document.querySelectorAll('.anim-reveal').forEach(el => obs.observe(el));
+    if (!('IntersectionObserver' in window)) {
+      // Fallback: show everything immediately
+      document.querySelectorAll('.anim-reveal').forEach(el => el.classList.add('visible'));
+      return;
+    }
+
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('visible');
+          obs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -20px 0px' });
+
+    document.querySelectorAll('.anim-reveal').forEach(el => obs.observe(el));
+  });
 }
 
 /* =========================================================
@@ -4395,32 +4407,18 @@ function initCardTilt() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initWalkthroughScroll();
-  initScrollReveal();
   initStatsTicker();
   initCardTilt();
   selectStep(1, false);
 
-  // Add anim-reveal classes to hero children for staggered entrance
-  const heroEyebrow = document.querySelector('.hero-eyebrow');
-  const heroTitle = document.querySelector('.hero-title');
-  const heroSub = document.querySelector('.hero-sub');
-  const heroCtas = document.querySelector('.hero-ctas');
-  const heroStats = document.querySelector('.hero-stats');
-  const scrollInd = document.querySelector('.scroll-indicator');
-
-  [heroEyebrow, heroTitle, heroSub, heroCtas, heroStats, scrollInd].forEach((el, i) => {
-    if (!el) return;
-    el.classList.add('anim-reveal', `anim-d${i + 1}`);
-  });
-  // Re-observe newly marked elements
-  initScrollReveal();
-
-  // Add anim-reveal to other sections
-  document.querySelectorAll('.cream-card, .cream-title, .wm-content, .pricing-grid > *, .atk-section-header').forEach((el, i) => {
+  // Add anim-reveal to section content elements
+  document.querySelectorAll('.cream-card, .cream-title').forEach((el, i) => {
     if (!el.classList.contains('anim-reveal')) {
       el.classList.add('anim-reveal', `anim-d${(i % 4) + 1}`);
     }
   });
+
+  // Init scroll reveal last (activates io-ready class)
   initScrollReveal();
 });
 </script>
