@@ -235,6 +235,42 @@ export class PolicyEngine {
       };
     }
 
+    // C. Tenant Isolation: request tenant must match delegation tenant (§71, §114, Attack 9)
+    if (delegationEnvelope.tenantId !== request.tenantId) {
+      const latencyMs = Math.round((performance.now() - startTime) * 100) / 100;
+      return {
+        actionId: request.actionId,
+        decision: 'DENY',
+        reasonCodes: ['POLICY_DENY'],
+        explanation: `Cross-tenant violation: delegation tenant '${delegationEnvelope.tenantId}' does not match request tenant '${request.tenantId}'`,
+        policyVersion: this.policyVersion,
+        riskScore: 95,
+        riskClass: 'CRITICAL',
+        evaluatedAt,
+        latencyMs
+      };
+    }
+
+    // D. Resource Scope Check: resource must match delegation resource patterns (§48, §49, Attack 12)
+    const resourceScopeCheck = this.delegationManager.checkResourceScope(
+      request.resource.id,
+      request.delegationId
+    );
+    if (!resourceScopeCheck.allowed) {
+      const latencyMs = Math.round((performance.now() - startTime) * 100) / 100;
+      return {
+        actionId: request.actionId,
+        decision: 'DENY',
+        reasonCodes: ['RESOURCE_MISMATCH'],
+        explanation: resourceScopeCheck.reason || `Resource '${request.resource.id}' is outside the scope of this delegation`,
+        policyVersion: this.policyVersion,
+        riskScore: 80,
+        riskClass: 'HIGH',
+        evaluatedAt,
+        latencyMs
+      };
+    }
+
     // 5. Sequence & Anomaly Detection
     const seqResult = this.sequenceDetector.evaluateSequence(
       request,

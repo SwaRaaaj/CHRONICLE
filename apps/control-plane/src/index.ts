@@ -38,6 +38,14 @@ export class ChronicleControlPlane {
   private approvals: Map<string, ApprovalRequest> = new Map();
   private totalActionsProcessed: number = 0;
   private startTime: number = Date.now();
+  /** Enforcement vs Observation mode (§3) */
+  private mode: 'enforcement' | 'observation' = 'enforcement';
+  /** In-memory action history for API queries */
+  private actionHistory: Array<{
+    actionId: string; agentId: string; tenantId: string; sessionId: string; taskId: string;
+    actionType: string; tool: string; resourceId: string; decision: string;
+    riskScore: number; riskClass: string; explanation: string; timestamp: string;
+  }> = [];
 
   constructor() {
     // Generate Master Control Plane Ed25519 Keypair
@@ -93,7 +101,7 @@ export class ChronicleControlPlane {
     };
     this.delegationManager.registerAgent(financeAgent);
 
-    // Issue Delegation for Finance Agent: Max transaction $1,000, cumulative $5,000
+    // Issue Delegation for Finance Agent: Max transaction $1,000, cumulative $10,000
     this.delegationManager.createDelegation(
       {
         delegationId: 'del_finance_refund_root',
@@ -105,7 +113,7 @@ export class ChronicleControlPlane {
         purpose: 'Execute authorized customer refunds up to policy limit',
         constraints: {
           allowedTools: ['stripe_refund', 'search_customers'],
-          resourcePatterns: ['charge:*', 'cust:*'],
+          resourcePatterns: ['ch:*', 'ch_*', 'charge:*', 'charge_*', 'cust:*', 'cust_*'],
           maxTransactionValue: 5000,
           cumulativeValueLimit: 10000,
           requireApprovalAbove: 1000,
@@ -116,6 +124,7 @@ export class ChronicleControlPlane {
       },
       sponsorKeys.privateKey
     );
+
 
     // 2. Customer Support Agent
     const supportAgentKeys = generateEd25519KeyPair();
@@ -148,7 +157,7 @@ export class ChronicleControlPlane {
         purpose: 'Resolve customer support queries',
         constraints: {
           allowedTools: ['search_customers', 'read_customer_pii', 'update_customer_record'],
-          resourcePatterns: ['cust:*'],
+          resourcePatterns: ['cust:*', 'cust_*'],
           temporalValiditySeconds: 86400
         },
         notBefore: new Date(Date.now() - 60000).toISOString(),
@@ -156,6 +165,7 @@ export class ChronicleControlPlane {
       },
       sponsorKeys.privateKey
     );
+
 
     // 3. DevOps Infrastructure Agent
     const devopsAgentKeys = generateEd25519KeyPair();
@@ -237,12 +247,13 @@ export class ChronicleControlPlane {
     );
     decision.receipt = receipt;
 
-    // 4. Record action in Sequence Detector history
+    // 4. Record action in Sequence Detector history (with delegationId for global cumulative tracking)
     this.sequenceDetector.recordAction({
       actionId: request.actionId,
       sessionId: request.sessionId,
       taskId: request.taskId,
       agentId: request.agentId,
+      delegationId: request.delegationId,
       actionType: request.actionType,
       tool: request.tool,
       resourceId: request.resource.id,
@@ -250,6 +261,34 @@ export class ChronicleControlPlane {
       decision: decision.decision,
       timestamp: request.timestamp
     });
+
+    // 5. Record in action history for API queries
+    this.actionHistory.push({
+      actionId: request.actionId,
+      agentId: request.agentId,
+      tenantId: request.tenantId,
+      sessionId: request.sessionId,
+      taskId: request.taskId,
+      actionType: request.actionType,
+      tool: request.tool,
+      resourceId: request.resource.id,
+      decision: this.mode === 'observation' ? 'OBSERVED' : decision.decision,
+      riskScore: decision.riskScore,
+      riskClass: decision.riskClass,
+      explanation: decision.explanation,
+      timestamp: request.timestamp
+    });
+
+    // 6. In observation mode: override blocking decisions to ALLOW but tag as OBSERVED
+    if (this.mode === 'observation' && (decision.decision === 'DENY' || decision.decision === 'HOLD')) {
+      return {
+        ...decision,
+        decision: 'ALLOW' as const,
+        reasonCodes: ['POLICY_PERMIT'],
+        explanation: `[OBSERVATION MODE] Would have been ${decision.decision}: ${decision.explanation}`,
+        observationNote: `Original decision: ${decision.decision}. System is in observation mode — no enforcement.`
+      };
+    }
 
     return decision;
   }
@@ -300,19 +339,35 @@ export class ChronicleControlPlane {
     return Array.from(this.approvals.values()).filter(a => a.status === 'PENDING');
   }
 
+  public getMode(): 'enforcement' | 'observation' { return this.mode; }
+  public setMode(mode: 'enforcement' | 'observation'): void { this.mode = mode; }
+
   public getStatus(): {
     status: string;
+    mode: string;
     uptimeSeconds: number;
     totalActions: number;
     killSwitchActive: boolean;
     publicKey: string;
+    activeDelegations: number;
+    registeredAgents: number;
+    pendingApprovals: number;
+    auditReceiptsCount: number;
+    ledgerIntegrity: { valid: boolean; totalReceipts: number };
   } {
+    const integrity = this.auditLedger.verifyIntegrity();
     return {
       status: 'HEALTHY',
+      mode: this.mode,
       uptimeSeconds: Math.floor((Date.now() - this.startTime) / 1000),
       totalActions: this.totalActionsProcessed,
-      killSwitchActive: false, // will reflect policy engine
-      publicKey: this.keyPair.publicKey
+      killSwitchActive: false,
+      publicKey: this.keyPair.publicKey,
+      activeDelegations: this.delegationManager.listDelegations().filter(d => !d.revoked).length,
+      registeredAgents: this.delegationManager.listAgents().length,
+      pendingApprovals: this.getPendingApprovals().length,
+      auditReceiptsCount: this.auditLedger.getReceipts().length,
+      ledgerIntegrity: { valid: integrity.valid, totalReceipts: integrity.totalReceipts }
     };
   }
 
@@ -484,7 +539,6 @@ export class ChronicleControlPlane {
               res.end(JSON.stringify({ agentId, quarantined: active }));
               return;
             }
-
             this.policyEngine.setKillSwitch(!!active);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ active: !!active, message: active ? 'GLOBAL LOCKDOWN ENGAGED' : 'OPERATIONAL' }));
@@ -493,6 +547,292 @@ export class ChronicleControlPlane {
             res.end(JSON.stringify({ error: (err as Error).message }));
           }
         });
+        return;
+      }
+
+      // 12. Kill Switch / Quarantine (alternate route)
+      if (req.method === 'POST' && url.pathname === '/api/v1/kill-switch/quarantine') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { agentId, quarantine } = JSON.parse(body);
+            if (quarantine) this.policyEngine.quarantineAgent(agentId);
+            else this.policyEngine.unquarantineAgent(agentId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ agentId, quarantined: quarantine }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // === Phase 8–12 New Endpoints ===
+
+      // 13. Enforcement / Observation mode toggle (§3)
+      if (req.method === 'POST' && url.pathname === '/api/v1/mode') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { mode } = JSON.parse(body) as { mode: 'enforcement' | 'observation' };
+            if (mode !== 'enforcement' && mode !== 'observation') {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'mode must be enforcement or observation' }));
+              return;
+            }
+            this.setMode(mode);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ mode, message: `Control plane switched to ${mode.toUpperCase()} mode` }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      if (req.method === 'GET' && url.pathname === '/api/v1/mode') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ mode: this.getMode() }));
+        return;
+      }
+
+      // 14. Agent Registry — List all agents (§79)
+      if (req.method === 'GET' && url.pathname === '/api/v1/agents') {
+        const agents = this.delegationManager.listAgents();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(agents));
+        return;
+      }
+
+      // 15. Agent Detail (§79)
+      if (req.method === 'GET' && url.pathname.match(/^\/api\/v1\/agents\/[^/]+$/)) {
+        const agentId = url.pathname.split('/').pop()!;
+        const agent = this.delegationManager.getAgent(agentId);
+        if (!agent) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Agent '${agentId}' not found` }));
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(agent));
+        return;
+      }
+
+      // 16. Register Agent (§79)
+      if (req.method === 'POST' && url.pathname === '/api/v1/agents') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const agent = JSON.parse(body);
+            this.delegationManager.registerAgent(agent);
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ registered: true, agentId: agent.agentId }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 17. Agent Capabilities (§79)
+      if (req.method === 'GET' && url.pathname.match(/^\/api\/v1\/agents\/[^/]+\/capabilities$/)) {
+        const parts = url.pathname.split('/');
+        const agentId = parts[parts.length - 2];
+        const agent = this.delegationManager.getAgent(agentId);
+        if (!agent) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Agent '${agentId}' not found` }));
+          return;
+        }
+        const delegations = this.delegationManager.listDelegations().filter(d => d.delegateeId === agentId && !d.revoked);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          agentId,
+          allowedCapabilities: agent.allowedCapabilities,
+          delegations: delegations.map(d => ({
+            delegationId: d.delegationId, purpose: d.purpose,
+            constraints: d.constraints, expiresAt: d.expiresAt
+          }))
+        }));
+        return;
+      }
+
+      // 18. Delegation List (§79)
+      if (req.method === 'GET' && url.pathname === '/api/v1/delegations') {
+        const delegations = this.delegationManager.listDelegations();
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(delegations));
+        return;
+      }
+
+      // 19. Revoke Delegation (§79)
+      if (req.method === 'POST' && url.pathname.match(/^\/api\/v1\/delegations\/[^/]+\/revoke$/)) {
+        const parts = url.pathname.split('/');
+        const delegationId = parts[parts.length - 2];
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { reason } = JSON.parse(body) as { reason: string };
+            const result = this.delegationManager.revokeDelegation(delegationId, reason || 'API revocation');
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ delegationId, revokedCount: result.revokedCount }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 20. Action History List (§79)
+      if (req.method === 'GET' && url.pathname === '/api/v1/actions') {
+        const limit = parseInt(url.searchParams.get('limit') || '100');
+        const agentFilter = url.searchParams.get('agentId');
+        let history = [...this.actionHistory].reverse(); // newest first
+        if (agentFilter) history = history.filter(h => h.agentId === agentFilter);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(history.slice(0, limit)));
+        return;
+      }
+
+      // 21. Action Detail (§79)
+      if (req.method === 'GET' && url.pathname.match(/^\/api\/v1\/actions\/[^/]+$/) && !url.pathname.endsWith('/provenance')) {
+        const actionId = url.pathname.split('/').pop()!;
+        const action = this.actionHistory.find(h => h.actionId === actionId);
+        if (!action) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Action '${actionId}' not found` }));
+          return;
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(action));
+        return;
+      }
+
+      // 22. Action Provenance Graph (§79) — alias of analytics route
+      if (req.method === 'GET' && url.pathname.match(/^\/api\/v1\/actions\/[^/]+\/provenance$/)) {
+        const parts = url.pathname.split('/');
+        const actionId = parts[parts.length - 2];
+        const graph = this.auditLedger.buildProvenanceGraph(actionId);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(graph));
+        return;
+      }
+
+      // 23. Simulate Agent Compromise Blast Radius (§79)
+      if (req.method === 'POST' && url.pathname === '/api/v1/simulate/agent') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { agentId } = JSON.parse(body);
+            const report = this.blastRadiusAnalyzer.calculateBlastRadius(agentId);
+            const attackPaths = this.blastRadiusAnalyzer.computeAttackPaths(agentId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ blastRadius: report, attackPaths }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 24. Attack Path Analysis (§79)
+      if (req.method === 'POST' && url.pathname === '/api/v1/simulate/attack-path') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { agentId } = JSON.parse(body);
+            const attackPaths = this.blastRadiusAnalyzer.computeAttackPaths(agentId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ agentId, attackPaths }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 25. Shadow Policy Comparator (§79)
+      if (req.method === 'POST' && url.pathname === '/api/v1/policies/shadow') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { currentPolicy, proposedPolicy } = JSON.parse(body);
+            const history = this.actionHistory.map(h => ({
+              actionId: h.actionId, agentId: h.agentId, actionType: h.actionType,
+              sessionId: h.sessionId, taskId: h.taskId, tool: h.tool,
+              resourceId: h.resourceId,
+              parameters: { amount: h.riskScore * 10 },
+              decision: h.decision as 'ALLOW' | 'DENY' | 'HOLD',
+              timestamp: h.timestamp
+            }));
+            const currentResult = this.policyEngine.simulatePolicy({ proposedPolicyContent: JSON.stringify(currentPolicy || {}) }, history);
+            const proposedResult = this.policyEngine.simulatePolicy({ proposedPolicyContent: JSON.stringify(proposedPolicy || {}) }, history);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              current: currentResult,
+              proposed: proposedResult,
+              divergence: {
+                newlyAllowed: proposedResult.newlyAllowedCount - currentResult.newlyAllowedCount,
+                newlyDenied: proposedResult.newlyDeniedCount - currentResult.newlyDeniedCount,
+                newlyHeld: proposedResult.newlyHeldCount - currentResult.newlyHeldCount
+              }
+            }));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 26. Behavioral Profile (§79)
+      if (req.method === 'GET' && url.pathname.match(/^\/api\/v1\/behavior\/[^/]+$/)) {
+        const agentId = url.pathname.split('/').pop()!;
+        const behaviorEngine = this.policyEngine.getBehaviorEngine();
+        const profile = behaviorEngine.getProfile(agentId);
+        const agentActions = this.actionHistory.filter(h => h.agentId === agentId);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          agentId,
+          profile: profile || null,
+          recentActions: agentActions.slice(-20),
+          totalActions: agentActions.length,
+          anomalyStatus: profile ? 'PROFILED' : 'INSUFFICIENT_DATA'
+        }));
+        return;
+      }
+
+      // 27. Security Incidents List (§79)
+      if (req.method === 'GET' && url.pathname === '/api/v1/incidents') {
+        const incidents = this.actionHistory
+          .filter(h => h.decision === 'DENY' && h.riskScore >= 80)
+          .slice(-50)
+          .reverse()
+          .map(h => ({
+            incidentId: `inc_${h.actionId}`,
+            agentId: h.agentId,
+            tool: h.tool,
+            riskScore: h.riskScore,
+            riskClass: h.riskClass,
+            decision: h.decision,
+            explanation: h.explanation,
+            timestamp: h.timestamp
+          }));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(incidents));
         return;
       }
 
