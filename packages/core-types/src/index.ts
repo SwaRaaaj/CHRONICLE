@@ -177,6 +177,7 @@ export interface ActionHistoryRecord {
   sessionId: SessionId;
   taskId: TaskId;
   agentId: AgentId;
+  delegationId?: string; // Optional for backward compatibility; required for cross-task cumulative tracking
   actionType: string;
   tool: string;
   resourceId: string;
@@ -417,15 +418,19 @@ export interface InvariantEvaluationResult {
 }
 
 // 15. Declarative Policy DSL & AST Model (§22, §50, §51)
+export interface PolicyCondition {
+  field: string;
+  operator: '==' | '!=' | '<=' | '>=' | '<' | '>' | 'IN' | 'NOT_IN' | 'CONTAINS';
+  value: unknown;
+  connector?: 'AND' | 'OR';
+  negated?: boolean;
+}
+
 export interface PolicyAST {
   policyId: string;
   name: string;
   targetAction: string;
-  conditions: {
-    field: string;
-    operator: '==' | '!=' | '<=' | '>=' | '<' | '>' | 'IN' | 'NOT_IN' | 'CONTAINS';
-    value: unknown;
-  }[];
+  conditions: PolicyCondition[];
   requireApprovalAbove?: number;
   effect: DecisionEffect;
   rawText: string;

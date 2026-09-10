@@ -37,6 +37,8 @@ export class SequenceDetector {
   private history: ActionHistoryRecord[] = [];
   private forbiddenRules: ForbiddenSequenceRule[] = [];
   private prerequisiteRules: PrerequisiteRule[] = [];
+  /** Global per-delegation cumulative spend tracker (persists across all sessions and tasks) */
+  private delegationCumulativeSpend: Map<string, number> = new Map();
 
   constructor() {
     this.initializeDefaultRules();
@@ -91,7 +93,15 @@ export class SequenceDetector {
 
   public recordAction(record: ActionHistoryRecord): void {
     this.history.push({ ...record });
+    // Track global per-delegation cumulative spend for cross-task/session enforcement (§47)
+    if (record.decision === 'ALLOW' && typeof record.parameters?.amount === 'number' && record.parameters.amount > 0) {
+      if (record.delegationId) {
+        const key = `${record.agentId}:${record.delegationId}`;
+        this.delegationCumulativeSpend.set(key, (this.delegationCumulativeSpend.get(key) ?? 0) + record.parameters.amount);
+      }
+    }
   }
+
 
   public getSessionHistory(sessionId: SessionId): ActionHistoryRecord[] {
     return this.history.filter(h => h.sessionId === sessionId);
@@ -217,42 +227,75 @@ export class SequenceDetector {
       }
     }
 
-    // 4. Cumulative Limit Check (Smurfing / Structuring evasion defense)
+    // 4. Cumulative Limit Check (Smurfing / Structuring evasion defense + Cross-Task evasion)
     const proposedAmount = typeof request.parameters.amount === 'number' ? request.parameters.amount : 0;
     if (proposedAmount > 0 && delegation?.constraints.cumulativeValueLimit !== undefined) {
-      let currentCumulative = 0;
-      for (const h of relevantHistory) {
-        if (h.decision === 'ALLOW' && typeof h.parameters.amount === 'number') {
-          currentCumulative += h.parameters.amount;
-        }
-      }
+      // Use global per-delegation counter first (catches cross-task/session evasion)
+      const delegKey = `${request.agentId}:${delegation.delegationId}`;
+      const globalCumulative = this.delegationCumulativeSpend.get(delegKey) ?? 0;
 
-      if (currentCumulative + proposedAmount > delegation.constraints.cumulativeValueLimit) {
-        return {
-          valid: false,
-          reasonCode: 'CUMULATIVE_LIMIT_EXCEEDED',
-          explanation: `Cumulative transaction sum ($${currentCumulative} + $${proposedAmount} = $${currentCumulative + proposedAmount}) exceeds delegation cumulative limit ($${delegation.constraints.cumulativeValueLimit})`,
-          anomalyScore: 88
-        };
+      if (globalCumulative > 0) {
+        // Use the global tracker for precise enforcement
+        if (globalCumulative + proposedAmount > delegation.constraints.cumulativeValueLimit) {
+          return {
+            valid: false,
+            reasonCode: 'CUMULATIVE_LIMIT_EXCEEDED',
+            explanation: `Cumulative transaction sum ($${globalCumulative} + $${proposedAmount} = $${globalCumulative + proposedAmount}) exceeds delegation cumulative limit ($${delegation.constraints.cumulativeValueLimit})`,
+            anomalyScore: 88
+          };
+        }
+      } else {
+        // Fall back to session+task history reconstruction
+        let currentCumulative = 0;
+        for (const h of relevantHistory) {
+          if (h.decision === 'ALLOW' && typeof h.parameters.amount === 'number') {
+            currentCumulative += h.parameters.amount;
+          }
+        }
+        if (currentCumulative + proposedAmount > delegation.constraints.cumulativeValueLimit) {
+          return {
+            valid: false,
+            reasonCode: 'CUMULATIVE_LIMIT_EXCEEDED',
+            explanation: `Cumulative transaction sum ($${currentCumulative} + $${proposedAmount} = $${currentCumulative + proposedAmount}) exceeds delegation cumulative limit ($${delegation.constraints.cumulativeValueLimit})`,
+            anomalyScore: 88
+          };
+        }
       }
     }
 
-    // 5. Runaway Loop Detection (Rapid identical calls)
+    // 5. Runaway Loop Detection — Two-tier burst detection (§18, §46)
+    // Tier A: Identical parameter burst (strong indicator of automated loop)
     const recentWindowRecords = relevantHistory.filter(h => {
       const recTime = new Date(h.timestamp).getTime();
-      return (now - recTime) <= 15000; // Last 15 seconds
+      return (now - recTime) <= 30000; // Last 30 seconds
     });
 
     const identicalCalls = recentWindowRecords.filter(
-      h => h.actionType === request.actionType && h.tool === request.tool && JSON.stringify(h.parameters) === JSON.stringify(request.parameters)
+      h => h.actionType === request.actionType &&
+           h.tool === request.tool &&
+           JSON.stringify(h.parameters) === JSON.stringify(request.parameters)
     );
 
-    if (identicalCalls.length >= 4) {
+    if (identicalCalls.length >= 3) {
       return {
         valid: false,
         reasonCode: 'SEQUENCE_ANOMALY',
-        explanation: `Runaway agent loop detected: 5 rapid calls to '${request.actionType}' in under 15 seconds`,
-        anomalyScore: 92
+        explanation: `Runaway agent loop detected: ${identicalCalls.length + 1} identical calls to '${request.actionType}' with identical parameters in under 30 seconds`,
+        anomalyScore: 95
+      };
+    }
+
+    // Tier B: Same-tool burst (varying parameters, but repeated tool = abuse pattern)
+    const sameToolCalls = recentWindowRecords.filter(
+      h => h.tool === request.tool
+    );
+
+    if (sameToolCalls.length >= 14) {
+      return {
+        valid: false,
+        reasonCode: 'SEQUENCE_ANOMALY',
+        explanation: `Tool abuse burst detected: ${sameToolCalls.length + 1} rapid consecutive calls to tool '${request.tool}' in a 30-second window. Rate limit exceeded.`,
+        anomalyScore: 88
       };
     }
 

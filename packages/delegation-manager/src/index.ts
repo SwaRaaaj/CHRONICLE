@@ -355,6 +355,18 @@ export class DelegationManager {
       };
     }
 
+    // Verify tenant isolation: all delegation hops must share the same tenant (§71, §114)
+    const rootTenant = chain[0].tenantId;
+    for (const link of chain) {
+      if (link.tenantId !== rootTenant) {
+        return {
+          valid: false,
+          reasonCode: 'DELEGATION_INVALID',
+          explanation: `Cross-tenant delegation detected: chain mixes tenants '${rootTenant}' and '${link.tenantId}'`
+        };
+      }
+    }
+
     const activeAgent = this.agents.get(agentId);
     if (!activeAgent) {
       return {
@@ -395,6 +407,43 @@ export class DelegationManager {
         isValid: true
       }
     };
+  }
+
+  /**
+   * Glob-style resource ID pattern matching for resource traversal prevention (§48, §49)
+   * Supports: 'cust:*' matches 'cust:123', '*' matches anything, 'k8s:**' matches any sub-path
+   */
+  private matchesGlobPattern(resourceId: string, pattern: string): boolean {
+    if (pattern === '*' || pattern === '**') return true;
+    const regexStr = '^' + pattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*\*/g, '__DS__')
+      .replace(/\*/g, '[^:]+')
+      .replace(/__DS__/g, '.*') + '$';
+    return new RegExp(regexStr).test(resourceId);
+  }
+
+  /**
+   * Verify that a resource ID is within the scope of a delegation's resource patterns.
+   * Blocks resource traversal attacks where an agent accesses out-of-scope resources.
+   */
+  public checkResourceScope(resourceId: string, delegationId: DelegationId): { allowed: boolean; reason?: string } {
+    const delegation = this.delegations.get(delegationId);
+    if (!delegation) {
+      return { allowed: false, reason: `Delegation '${delegationId}' not found` };
+    }
+    const patterns = delegation.constraints.resourcePatterns;
+    if (!patterns || patterns.length === 0 || patterns.includes('*')) {
+      return { allowed: true };
+    }
+    const matches = patterns.some(p => this.matchesGlobPattern(resourceId, p));
+    if (!matches) {
+      return {
+        allowed: false,
+        reason: `Resource '${resourceId}' does not match delegation resource patterns: [${patterns.join(', ')}]`
+      };
+    }
+    return { allowed: true };
   }
 
   public getDelegation(delegationId: DelegationId): DelegationEnvelope | undefined {
