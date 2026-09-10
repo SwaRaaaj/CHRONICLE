@@ -21,8 +21,14 @@ import { SequenceDetector } from '@chronicle/sequence-detector';
 import { PolicyEngine } from '@chronicle/policy-engine';
 import { AuditLedger } from '@chronicle/audit-ledger';
 import { BlastRadiusAnalyzer } from '@chronicle/blast-radius';
+import {
+  parsePolicyDSL,
+  evaluatePolicyDSL,
+  runPolicyTests,
+  analyzePolicyCoverage
+} from '@chronicle/policy-dsl';
 import { ChronicleControlPlane } from '../apps/control-plane/src/index.ts';
-import type { ActionRequest, AuthorizationReceipt } from '@chronicle/core-types';
+import type { ActionRequest, AuthorizationReceipt, PolicyTestCase } from '@chronicle/core-types';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -746,6 +752,83 @@ async function runTestSuite() {
     assert.strictEqual(exceedDecision.decision, 'DENY');
     assert.strictEqual(exceedDecision.reasonCodes[0], 'INVARIANT_VIOLATION');
     assert(exceedDecision.explanation.includes('exceeds original payment amount'));
+  });
+
+  console.log('\n\x1b[1m6. Declarative Policy DSL & AST Test Runner (§22, §50, §51, §52, §53)\x1b[0m');
+
+  await it('parses human-readable Policy DSL and compiles to AST (§22, §50)', () => {
+    const dsl = `
+      POLICY enterprise_refund_guard
+      ALLOW stripe_refund
+      WHEN amount <= 5000
+        AND resource.sensitivity IN ["INTERNAL", "CONFIDENTIAL"]
+      REQUIRE_APPROVAL_ABOVE 2500
+    `;
+    const ast = parsePolicyDSL(dsl);
+    assert.strictEqual(ast.policyId, 'enterprise_refund_guard');
+    assert.strictEqual(ast.targetAction, 'stripe_refund');
+    assert.strictEqual(ast.effect, 'ALLOW');
+    assert.strictEqual(ast.conditions.length, 2);
+    assert.strictEqual(ast.requireApprovalAbove, 2500);
+  });
+
+  await it('evaluates compiled Policy AST and executes policy test runner (§51)', () => {
+    const dsl = `
+      POLICY test_runner_policy
+      ALLOW stripe_refund
+      WHEN amount <= 5000
+      REQUIRE_APPROVAL_ABOVE 2500
+    `;
+    const ast = parsePolicyDSL(dsl);
+
+    const testCases: PolicyTestCase[] = [
+      {
+        testId: 't1',
+        name: 'Auto-allow sub-2500',
+        policyId: ast.policyId,
+        mockAction: {
+          actionId: 'act_t1',
+          tenantId: 'tenant_acme',
+          sessionId: 's',
+          taskId: 't',
+          agentId: 'a',
+          delegationId: 'd',
+          actionType: 'refund',
+          tool: 'stripe_refund',
+          resource: { id: 'c1', type: 'charge', sensitivity: 'INTERNAL', environment: 'production' },
+          parameters: { amount: 1000 },
+          parametersHash: 'sha256:dummy',
+          timestamp: new Date().toISOString()
+        },
+        mockContext: {} as any,
+        expectedDecision: 'ALLOW'
+      },
+      {
+        testId: 't2',
+        name: 'Step-up hold above 2500',
+        policyId: ast.policyId,
+        mockAction: {
+          actionId: 'act_t2',
+          tenantId: 'tenant_acme',
+          sessionId: 's',
+          taskId: 't',
+          agentId: 'a',
+          delegationId: 'd',
+          actionType: 'refund',
+          tool: 'stripe_refund',
+          resource: { id: 'c2', type: 'charge', sensitivity: 'INTERNAL', environment: 'production' },
+          parameters: { amount: 3000 },
+          parametersHash: 'sha256:dummy',
+          timestamp: new Date().toISOString()
+        },
+        mockContext: {} as any,
+        expectedDecision: 'HOLD'
+      }
+    ];
+
+    const report = runPolicyTests(ast, testCases);
+    assert.strictEqual(report.totalTests, 2);
+    assert.strictEqual(report.passed, 2);
   });
 
   console.log(`\n\x1b[32m\x1b[1mALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!\x1b[0m\n`);
