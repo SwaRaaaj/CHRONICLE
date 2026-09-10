@@ -43,7 +43,13 @@
   --sh: 0 12px 40px rgba(0, 0, 0, .5);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+html.in-console {
+  scroll-snap-type: none !important;
+}
 body {
   font-family: var(--f);
   background: var(--bg-dark);
@@ -322,6 +328,71 @@ body {
 }
 
 /* ====================================================== */
+
+/* FULL-PAGE SCROLL SNAP ARCHITECTURE (STOPS ON EVERY SECTION) */
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+}
+html.in-console {
+  scroll-snap-type: none !important;
+}
+.hero-sec {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 100px 24px 60px;
+  box-sizing: border-box;
+}
+.step-sec {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 80px 32px;
+  box-sizing: border-box;
+  background: var(--bg-mahogany);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+}
+.cream-sec {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 80px 32px;
+  box-sizing: border-box;
+}
+.watermark-sec {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 80px 32px;
+  box-sizing: border-box;
+}
+.cta-sec {
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  padding: 80px 32px 60px;
+  box-sizing: border-box;
+}
+
 /* SECTION 2: INTERACTIVE 4-STEP WALKTHROUGH (SILKY SMOOTH ZERO-TRUST STICKY SCROLL) */
 /* ====================================================== */
 .step-sec {
@@ -2002,7 +2073,7 @@ select.fc2 { cursor: pointer; }
             <div class="step-track-fill" id="stepTrackFill"></div>
           </div>
           <div class="step-list">
-            <div class="step-item active" onclick="selectStep(1)" id="st-1" data-step="1">
+            <div class="step-item active" onclick="jumpToStep(1)" id="st-1" data-step="1">
               <div class="step-num">01</div>
               <div class="step-title">Intercept &amp; Canonicalize</div>
               <div class="step-desc-wrap">
@@ -2018,7 +2089,7 @@ select.fc2 { cursor: pointer; }
                 </div>
               </div>
             </div>
-            <div class="step-item" onclick="selectStep(2)" id="st-2" data-step="2">
+            <div class="step-item" onclick="jumpToStep(2)" id="st-2" data-step="2">
               <div class="step-num">02</div>
               <div class="step-title">Sequence &amp; DFA Invariants</div>
               <div class="step-desc-wrap">
@@ -2034,7 +2105,7 @@ select.fc2 { cursor: pointer; }
                 </div>
               </div>
             </div>
-            <div class="step-item" onclick="selectStep(3)" id="st-3" data-step="3">
+            <div class="step-item" onclick="jumpToStep(3)" id="st-3" data-step="3">
               <div class="step-num">03</div>
               <div class="step-title">Cryptographic Grant Gating</div>
               <div class="step-desc-wrap">
@@ -2050,7 +2121,7 @@ select.fc2 { cursor: pointer; }
                 </div>
               </div>
             </div>
-            <div class="step-item" onclick="selectStep(4)" id="st-4" data-step="4">
+            <div class="step-item" onclick="jumpToStep(4)" id="st-4" data-step="4">
               <div class="step-num">04</div>
               <div class="step-title">Merkle Provenance Audit</div>
               <div class="step-desc-wrap">
@@ -2203,10 +2274,10 @@ select.fc2 { cursor: pointer; }
 
       <!-- Bottom Step Breadcrumbs -->
       <div class="step-breadcrumbs">
-        <div class="sbc-item on" id="sbc-1" onclick="selectStep(1)"><span class="sbc-num">1</span> Intercept</div>
-        <div class="sbc-item" id="sbc-2" onclick="selectStep(2)"><span class="sbc-num">2</span> Evaluate</div>
-        <div class="sbc-item" id="sbc-3" onclick="selectStep(3)"><span class="sbc-num">3</span> Gate</div>
-        <div class="sbc-item" id="sbc-4" onclick="selectStep(4)"><span class="sbc-num">4</span> Ledger</div>
+        <div class="sbc-item on" id="sbc-1" onclick="jumpToStep(1)"><span class="sbc-num">1</span> Intercept</div>
+        <div class="sbc-item" id="sbc-2" onclick="jumpToStep(2)"><span class="sbc-num">2</span> Evaluate</div>
+        <div class="sbc-item" id="sbc-3" onclick="jumpToStep(3)"><span class="sbc-num">3</span> Gate</div>
+        <div class="sbc-item" id="sbc-4" onclick="jumpToStep(4)"><span class="sbc-num">4</span> Ledger</div>
       </div>
     </div>
   </section>
@@ -2285,7 +2356,7 @@ select.fc2 { cursor: pointer; }
   <!-- ====================================================== -->
   <!-- SECTION 4: GIANT WATERMARK SECURITY TIERS (SCREENSHOT 4)-->
   <!-- ====================================================== -->
-  <section class="watermark-sec" id="pricing">
+  <section class="watermark-sec" id="attacks" data-section="pricing">
     <div class="watermark-text">14 Attacks</div>
     <div class="sec-inner">
       <div style="text-align:center; position:relative; z-index:1; margin-bottom:48px;">
@@ -2800,6 +2871,7 @@ const GET = p => api('GET', p);
 const POST = (p, b) => api('POST', p, b);
 
 function enterConsole() {
+  document.documentElement.classList.add("in-console");
   const lp = document.getElementById('lp');
   lp.classList.add('out');
   document.getElementById('app').classList.add('on');
@@ -2813,6 +2885,7 @@ function enterConsoleAt(tab) {
 }
 
 function showLanding() {
+  document.documentElement.classList.remove("in-console");
   const lp = document.getElementById('lp');
   lp.classList.remove('out');
   document.getElementById('app').classList.remove('on');
@@ -4070,97 +4143,40 @@ function triggerSimulationBeam() {
   toast('Zero-Trust Simulation: Action intercepted & validated in ' + rLat + 'ms', 'ok', '&#10003;');
 }
 
-/* HIGH-PERFORMANCE SCROLL-DRIVEN WALKTHROUGH TRACKING (RAF THROTTLED) */
-let scrollRaf = null;
+/* INTELLIGENT SECTION & STEP WHEEL INTERCEPTOR */
+let isSteppingWheel = false;
 function initWalkthroughScroll() {
-  const section = document.getElementById('how');
-  if (!section) return;
+  const how = document.getElementById('how');
+  if (!how) return;
 
-  window.addEventListener('scroll', () => {
-    if (scrollRaf) return;
-    scrollRaf = requestAnimationFrame(() => {
-      scrollRaf = null;
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-
-      // Only evaluate when section is actively in viewport range
-      if (rect.top <= vh * 0.45 && rect.bottom >= vh * 0.2) {
-        const total = rect.height - vh * 0.4;
-        const current = Math.max(0, (vh * 0.45) - rect.top);
-        const pct = Math.min(1, Math.max(0, current / total));
-
-        let targetStep = 1;
-        if (pct > 0.74) targetStep = 4;
-        else if (pct > 0.48) targetStep = 3;
-        else if (pct > 0.22) targetStep = 2;
-
-        if (targetStep !== S.activeStep) {
-          selectStep(targetStep, false);
+  // Intercept wheel inside #how to step through 1 -> 2 -> 3 -> 4
+  how.addEventListener('wheel', (e) => {
+    const rect = how.getBoundingClientRect();
+    // When #how is actively centered in viewport
+    if (Math.abs(rect.top) < 60) {
+      if (e.deltaY > 30 && S.activeStep < 4) {
+        e.preventDefault();
+        if (!isSteppingWheel) {
+          isSteppingWheel = true;
+          selectStep(S.activeStep + 1, true);
+          setTimeout(() => { isSteppingWheel = false; }, 420);
+        }
+      } else if (e.deltaY < -30 && S.activeStep > 1) {
+        e.preventDefault();
+        if (!isSteppingWheel) {
+          isSteppingWheel = true;
+          selectStep(S.activeStep - 1, true);
+          setTimeout(() => { isSteppingWheel = false; }, 420);
         }
       }
-    });
-  }, { passive: true });
-}
-
-/* SCROLL REVEAL OBSERVER */
-function initScrollReveal() {
-  const reveals = document.querySelectorAll('.reveal, .cream-card, .wm-card, .h-stat');
-  if (!reveals.length) return;
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  reveals.forEach((el, i) => {
-    el.classList.add('reveal');
-    if (i % 3 === 1) el.classList.add('reveal-delay-1');
-    if (i % 3 === 2) el.classList.add('reveal-delay-2');
-    observer.observe(el);
-  });
-}
-
-/* HERO STATS LIVE TICKER */
-function initStatsTicker() {
-  const hsLat = document.getElementById('hs-lat');
-  const hsActs = document.getElementById('hs-acts');
-  setInterval(() => {
-    if (hsLat && Math.random() > 0.65) {
-      const lat = (0.32 + Math.random() * 0.16).toFixed(2);
-      hsLat.textContent = lat + 'ms';
     }
-    if (hsActs && Math.random() > 0.55) {
-      const delta = Math.floor(Math.random() * 4 + 1);
-      const curr = parseInt(hsActs.textContent.replace(/,/g, '')) || 1307;
-      hsActs.textContent = (curr + delta).toLocaleString();
-    }
-  }, 3600);
+  }, { passive: false });
 }
 
-/* SMOOTH 3D CARD TILT EFFECT (RAF THROTTLED) */
-function initCardTilt() {
-  const cards = document.querySelectorAll('.step-card, .cream-card, .wm-card');
-  cards.forEach(c => {
-    let cardRaf = null;
-    c.addEventListener('mousemove', e => {
-      if (cardRaf) return;
-      cardRaf = requestAnimationFrame(() => {
-        cardRaf = null;
-        const r = c.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        c.style.transform = `perspective(1200px) rotateY(${x * 3.5}deg) rotateX(${-y * 3.5}deg) translateY(-2px)`;
-      });
-    });
-    c.addEventListener('mouseleave', () => {
-      if (cardRaf) { cancelAnimationFrame(cardRaf); cardRaf = null; }
-      c.style.transform = '';
-    });
-  });
+function jumpToStep(n) {
+  selectStep(n, true);
+  const how = document.getElementById('how');
+  if (how) how.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function openModal(id) { document.getElementById(id).classList.add('op'); document.body.style.overflow = 'hidden'; }

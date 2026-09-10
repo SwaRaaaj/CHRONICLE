@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "public": false,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/apps/control-plane/public/index.html" },
-    { "source": "/(.*)", "destination": "/apps/control-plane/public/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
