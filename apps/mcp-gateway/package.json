@@ -1,0 +1,11 @@
+{
+  "name": "@chronicle/mcp-gateway",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@chronicle/core-types": "*",
+    "@chronicle/crypto-primitives": "*"
+  }
+}
