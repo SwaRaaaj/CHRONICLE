@@ -27,8 +27,9 @@ import {
   runPolicyTests,
   analyzePolicyCoverage
 } from '@chronicle/policy-dsl';
+import { IdempotentEventBus } from '@chronicle/event-bus';
 import { ChronicleControlPlane } from '../apps/control-plane/src/index.ts';
-import type { ActionRequest, AuthorizationReceipt, PolicyTestCase } from '@chronicle/core-types';
+import type { ActionRequest, AuthorizationReceipt, PolicyTestCase, ControlPlaneEvent } from '@chronicle/core-types';
 
 let passedTests = 0;
 let totalTests = 0;
@@ -871,6 +872,39 @@ async function runTestSuite() {
     const decision = await cp.authorizeAction(outlierReq);
     assert.strictEqual(decision.riskClass, 'CRITICAL');
     assert(decision.riskScore >= 65);
+  });
+
+  console.log('\n\x1b[1m8. Idempotent Event Bus Architecture (§74)\x1b[0m');
+
+  await it('dispatches events and deduplicates duplicate messages idempotently', async () => {
+    const bus = new IdempotentEventBus();
+    let dispatchCount = 0;
+
+    bus.subscribe('ACTION_ALLOWED', () => {
+      dispatchCount++;
+    });
+
+    const evt: ControlPlaneEvent = {
+      eventId: 'evt_test_unique_100',
+      eventType: 'ACTION_ALLOWED',
+      tenantId: 'tenant_acme',
+      timestamp: new Date().toISOString(),
+      producer: 'PolicyEngine',
+      correlationId: 'corr_test',
+      payload: { actionId: 'act_100' }
+    };
+
+    // First publish succeeds
+    const pub1 = await bus.publish(evt);
+    assert.strictEqual(pub1.published, true);
+    assert.strictEqual(pub1.deduplicated, false);
+    assert.strictEqual(dispatchCount, 1);
+
+    // Duplicate publish with same eventId is deduplicated
+    const pub2 = await bus.publish(evt);
+    assert.strictEqual(pub2.published, false);
+    assert.strictEqual(pub2.deduplicated, true);
+    assert.strictEqual(dispatchCount, 1);
   });
 
   console.log(`\n\x1b[32m\x1b[1mALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!\x1b[0m\n`);
