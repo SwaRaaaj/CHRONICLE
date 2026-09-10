@@ -16,6 +16,7 @@ import {
 } from '@chronicle/crypto-primitives';
 import { DelegationManager } from '@chronicle/delegation-manager';
 import { SequenceDetector } from '@chronicle/sequence-detector';
+import { WorkflowEngine } from '@chronicle/workflow-engine';
 
 export interface PolicyRule {
   id: string;
@@ -36,6 +37,7 @@ export interface PolicyRule {
 export class PolicyEngine {
   private delegationManager: DelegationManager;
   private sequenceDetector: SequenceDetector;
+  private workflowEngine: WorkflowEngine;
   private controlPlanePrivateKeyPem: string;
   private policyVersion: string = 'v1.4.0-enterprise';
   private customRules: PolicyRule[] = [];
@@ -45,11 +47,17 @@ export class PolicyEngine {
   constructor(
     delegationManager: DelegationManager,
     sequenceDetector: SequenceDetector,
-    controlPlanePrivateKeyPem: string
+    controlPlanePrivateKeyPem: string,
+    workflowEngine?: WorkflowEngine
   ) {
     this.delegationManager = delegationManager;
     this.sequenceDetector = sequenceDetector;
     this.controlPlanePrivateKeyPem = controlPlanePrivateKeyPem;
+    this.workflowEngine = workflowEngine ?? new WorkflowEngine();
+  }
+
+  public getWorkflowEngine(): WorkflowEngine {
+    return this.workflowEngine;
   }
 
   public setKillSwitch(active: boolean): void {
@@ -236,6 +244,48 @@ export class PolicyEngine {
         policyVersion: this.policyVersion,
         riskScore: seqResult.anomalyScore,
         riskClass: seqResult.anomalyScore >= 85 ? 'CRITICAL' : 'HIGH',
+        evaluatedAt,
+        latencyMs
+      };
+    }
+
+    // 5b. Workflow State & Business Invariants Verification (§41, §42, §43, §44)
+    const workflowInstance = this.workflowEngine.findInstanceByTask(request.taskId);
+    if (workflowInstance) {
+      const stateCheck = this.workflowEngine.checkActionAllowed(request, workflowInstance);
+      if (!stateCheck.allowed) {
+        const latencyMs = Math.round((performance.now() - startTime) * 100) / 100;
+        return {
+          actionId: request.actionId,
+          decision: 'DENY',
+          reasonCodes: ['WORKFLOW_STATE_INVALID'],
+          explanation: stateCheck.reason || 'Action not allowed in current workflow state',
+          policyVersion: this.policyVersion,
+          riskScore: 90,
+          riskClass: 'CRITICAL',
+          evaluatedAt,
+          latencyMs
+        };
+      }
+    }
+
+    // Evaluate Business Invariants (§41)
+    const invariantResult = this.workflowEngine.evaluateInvariants(
+      request,
+      (context ?? {}) as ActionContext,
+      workflowInstance
+    );
+    if (!invariantResult.passed) {
+      const latencyMs = Math.round((performance.now() - startTime) * 100) / 100;
+      const primaryViolation = invariantResult.violatedInvariants[0];
+      return {
+        actionId: request.actionId,
+        decision: 'DENY',
+        reasonCodes: ['INVARIANT_VIOLATION'],
+        explanation: `Business invariant violation '${primaryViolation.name}': ${primaryViolation.reason}`,
+        policyVersion: this.policyVersion,
+        riskScore: 95,
+        riskClass: 'CRITICAL',
         evaluatedAt,
         latencyMs
       };

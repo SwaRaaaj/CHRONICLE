@@ -664,6 +664,90 @@ async function runTestSuite() {
     assert(blast.reachableTools.some(t => t.tool === 'stripe_refund'));
   });
 
+  console.log('\n\x1b[1m5. Workflow State Machine & Business Invariants (§41, §42, §43, §44)\x1b[0m');
+
+  await it('enforces state-aware gating and event-aware transitions in formal workflows', async () => {
+    const cp = new ChronicleControlPlane();
+    const wfEngine = cp.policyEngine.getWorkflowEngine();
+
+    wfEngine.registerWorkflow({
+      workflowId: 'wf_support_approval',
+      tenantId: 'tenant_acme',
+      name: 'Support Approval Workflow',
+      description: 'Ticket -> Investigation -> Approved -> Executed',
+      initialState: 'INVESTIGATING',
+      terminalStates: ['EXECUTED', 'CLOSED'],
+      states: ['INVESTIGATING', 'APPROVED', 'EXECUTED', 'CLOSED'],
+      transitions: [
+        { fromState: 'INVESTIGATING', toState: 'APPROVED', triggerEvent: 'fraud_check_passed' },
+        { fromState: 'APPROVED', toState: 'EXECUTED' }
+      ],
+      actionStateRequirements: {
+        stripe_refund: ['APPROVED']
+      }
+    });
+
+    const inst = wfEngine.createInstance('wf_support_approval', 'tenant_acme', 'task_wf_test');
+
+    const wfReq: ActionRequest = {
+      actionId: 'act_wf_gate_test',
+      tenantId: 'tenant_acme',
+      sessionId: 'sess_wf',
+      taskId: 'task_wf_test',
+      agentId: 'agent_finance_refund',
+      delegationId: 'del_finance_refund_root',
+      actionType: 'stripe_refund',
+      tool: 'stripe_refund',
+      resource: { id: 'charge_wf', type: 'charge', sensitivity: 'CONFIDENTIAL', environment: 'production' },
+      parameters: { chargeId: 'charge_wf', amount: 50, originalAmount: 500 },
+      parametersHash: canonicalHash({ chargeId: 'charge_wf', amount: 50, originalAmount: 500 }),
+      timestamp: new Date().toISOString()
+    };
+
+    // 1. In INVESTIGATING state, stripe_refund must be DENIED with WORKFLOW_STATE_INVALID (§43)
+    const earlyDecision = await cp.authorizeAction(wfReq);
+    assert.strictEqual(earlyDecision.decision, 'DENY');
+    assert.strictEqual(earlyDecision.reasonCodes[0], 'WORKFLOW_STATE_INVALID');
+
+    // 2. Transition without event fails (§44)
+    assert.throws(() => {
+      wfEngine.transition(inst.instanceId, 'APPROVED', 'user_finance');
+    }, /required prerequisite event 'fraud_check_passed'/);
+
+    // 3. Emit event and transition
+    wfEngine.emitEvent(inst.instanceId, 'fraud_check_passed');
+    wfEngine.transition(inst.instanceId, 'APPROVED', 'user_finance');
+
+    // 4. In APPROVED state, action is permitted
+    const approvedDecision = await cp.authorizeAction(wfReq);
+    assert.strictEqual(approvedDecision.decision, 'ALLOW');
+  });
+
+  await it('evaluates and enforces business invariants deterministically (§41)', async () => {
+    const cp = new ChronicleControlPlane();
+
+    // Invariant: Refund exceeding original payment
+    const exceedReq: ActionRequest = {
+      actionId: 'act_inv_exceed',
+      tenantId: 'tenant_acme',
+      sessionId: 'sess_inv',
+      taskId: 'task_customer_refunds',
+      agentId: 'agent_finance_refund',
+      delegationId: 'del_finance_refund_root',
+      actionType: 'stripe_refund',
+      tool: 'stripe_refund',
+      resource: { id: 'charge_inv_1', type: 'charge', sensitivity: 'CONFIDENTIAL', environment: 'production' },
+      parameters: { chargeId: 'charge_inv_1', amount: 4500, originalAmount: 1000 },
+      parametersHash: canonicalHash({ chargeId: 'charge_inv_1', amount: 4500, originalAmount: 1000 }),
+      timestamp: new Date().toISOString()
+    };
+
+    const exceedDecision = await cp.authorizeAction(exceedReq);
+    assert.strictEqual(exceedDecision.decision, 'DENY');
+    assert.strictEqual(exceedDecision.reasonCodes[0], 'INVARIANT_VIOLATION');
+    assert(exceedDecision.explanation.includes('exceeds original payment amount'));
+  });
+
   console.log(`\n\x1b[32m\x1b[1mALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!\x1b[0m\n`);
 }
 

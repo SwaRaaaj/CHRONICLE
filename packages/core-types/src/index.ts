@@ -346,3 +346,173 @@ export interface PolicySimulationResult {
   }[];
   summaryText: string;
 }
+
+// 13. Workflow State Machine Model (§42, §43, §44)
+export type WorkflowId = string;
+export type WorkflowInstanceId = string;
+
+export interface WorkflowTransition {
+  fromState: string;
+  toState: string;
+  triggerEvent?: string;
+  requiredRole?: string;
+  requiredApprovals?: number;
+  allowedActions?: string[];
+}
+
+export interface WorkflowDefinition {
+  workflowId: WorkflowId;
+  tenantId: TenantId;
+  name: string;
+  description: string;
+  initialState: string;
+  terminalStates: string[];
+  states: string[];
+  transitions: WorkflowTransition[];
+  actionStateRequirements: Record<string, string[]>; // e.g. { "stripe_refund": ["APPROVED", "EXECUTION_READY"] }
+}
+
+export interface WorkflowInstance {
+  instanceId: WorkflowInstanceId;
+  workflowId: WorkflowId;
+  tenantId: TenantId;
+  taskId: TaskId;
+  currentState: string;
+  history: {
+    fromState: string;
+    toState: string;
+    transitionedAt: string;
+    triggeredBy: string;
+    event?: string;
+    metadata?: Record<string, unknown>;
+  }[];
+  emittedEvents: string[]; // e.g. ["fraud_check_passed", "pr_reviewed"]
+  contextData: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 14. Business Invariants Model (§41)
+export type InvariantId = string;
+
+export interface BusinessInvariant {
+  invariantId: InvariantId;
+  tenantId: TenantId;
+  name: string;
+  description: string;
+  targetActionType: string;
+  evaluate: (action: ActionRequest, context: ActionContext, state?: WorkflowInstance) => {
+    valid: boolean;
+    reason?: string;
+  };
+}
+
+export interface InvariantEvaluationResult {
+  passed: boolean;
+  violatedInvariants: {
+    invariantId: InvariantId;
+    name: string;
+    reason: string;
+  }[];
+}
+
+// 15. Declarative Policy DSL & AST Model (§22, §50, §51)
+export interface PolicyAST {
+  policyId: string;
+  name: string;
+  targetAction: string;
+  conditions: {
+    field: string;
+    operator: '==' | '!=' | '<=' | '>=' | '<' | '>' | 'IN' | 'NOT_IN' | 'CONTAINS';
+    value: unknown;
+  }[];
+  requireApprovalAbove?: number;
+  effect: DecisionEffect;
+  rawText: string;
+}
+
+export interface PolicyTestCase {
+  testId: string;
+  name: string;
+  policyId: string;
+  mockAction: ActionRequest;
+  mockContext: ActionContext;
+  expectedDecision: DecisionEffect;
+  expectedReasonCode?: ReasonCode;
+}
+
+export interface PolicyTestReport {
+  totalTests: number;
+  passed: number;
+  failed: number;
+  results: {
+    testId: string;
+    name: string;
+    passed: boolean;
+    actualDecision: DecisionEffect;
+    expectedDecision: DecisionEffect;
+    error?: string;
+  }[];
+}
+
+// 16. Statistical Behavioral Profiling Model (§17, §18, §31, §63)
+export interface ToolCallDistribution {
+  meanCallsPerHour: number;
+  stdDevCallsPerHour: number;
+  meanTransactionValue: number;
+  stdDevTransactionValue: number;
+  commonResources: string[];
+}
+
+export interface BehaviorProfile {
+  agentId: AgentId;
+  tenantId: TenantId;
+  sampleCount: number;
+  toolDistributions: Record<string, ToolCallDistribution>;
+  typicalSequences: string[][]; // e.g. [["search_customers", "stripe_refund"]]
+  typicalOperatingHours: {
+    startHourUTC: number;
+    endHourUTC: number;
+  };
+  lastUpdated: string;
+}
+
+export interface BehaviorAnomalyAssessment {
+  agentId: AgentId;
+  anomalyDetected: boolean;
+  anomalyScore: number; // 0 - 100
+  zScoreAmount?: number;
+  zScoreFrequency?: number;
+  unusualTool: boolean;
+  unusualResource: boolean;
+  explanation: string;
+  advisoryOnly: boolean; // Advisory signal: does NOT directly block if false
+}
+
+// 17. Event Architecture Model (§74)
+export type EventType =
+  | 'AGENT_REGISTERED'
+  | 'DELEGATION_CREATED'
+  | 'ACTION_REQUESTED'
+  | 'ACTION_ALLOWED'
+  | 'ACTION_DENIED'
+  | 'ACTION_HELD'
+  | 'APPROVAL_REQUESTED'
+  | 'APPROVAL_GRANTED'
+  | 'APPROVAL_REJECTED'
+  | 'DELEGATION_REVOKED'
+  | 'AGENT_QUARANTINED'
+  | 'BEHAVIOR_ANOMALY'
+  | 'POLICY_CHANGED'
+  | 'WORKFLOW_TRANSITIONED';
+
+export interface ControlPlaneEvent {
+  eventId: string;
+  eventType: EventType;
+  tenantId: TenantId;
+  timestamp: string;
+  producer: string;
+  correlationId: string;
+  payload: Record<string, unknown>;
+}
+
