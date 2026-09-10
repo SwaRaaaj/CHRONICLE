@@ -92,6 +92,23 @@ async function runCliAndSdkTests() {
   assert(fallbackDecision.decision === 'DENY', 'client enforces strict FAIL-CLOSED policy when control plane unreachable (§54, §78)');
   assert(fallbackDecision.reasonCodes.includes('POLICY_DENY'), 'returns fail-closed reason code POLICY_DENY');
 
+  // 6. Test Enhanced CLI Command Primitives (§81)
+  const { ChronicleControlPlane } = await import('../apps/control-plane/src/index.ts');
+  const cp = new ChronicleControlPlane();
+
+  const status = cp.getStatus();
+  assert(status.status === 'HEALTHY', 'CLI status reports HEALTHY status');
+  assert(status.activeDelegations >= 1, 'CLI status reports active delegations count');
+  assert(status.registeredAgents >= 1, 'CLI status reports registered agents count');
+  assert(status.ledgerIntegrity.valid === true, 'CLI status reports unbroken ledger integrity');
+
+  const attackPaths = cp.blastRadiusAnalyzer.computeAttackPaths('agent_finance_refund');
+  assert(attackPaths.length > 0, 'CLI attack-path computes lateral movement paths for agent');
+  assert(attackPaths.some(p => p.tool === 'stripe_refund'), 'attack path identifies reachable tool stripe_refund');
+
+  const blastReport = cp.blastRadiusAnalyzer.calculateBlastRadius('agent_finance_refund');
+  assert(blastReport !== null && blastReport.maximumFinancialExposure > 0, 'CLI blast-radius computes maximum financial exposure');
+
   console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
   if (failed > 0) {
     process.exit(1);
