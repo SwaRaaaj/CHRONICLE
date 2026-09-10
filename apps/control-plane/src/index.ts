@@ -18,7 +18,9 @@ import type {
 import {
   generateEd25519KeyPair,
   createAuthorizationGrant,
-  canonicalHash
+  canonicalHash,
+  signEd25519,
+  canonicalJsonStringify
 } from '@chronicle/crypto-primitives';
 import type { KeyPair } from '@chronicle/crypto-primitives';
 import { DelegationManager } from '@chronicle/delegation-manager';
@@ -672,6 +674,56 @@ export class ChronicleControlPlane {
         const delegations = this.delegationManager.listDelegations();
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(delegations));
+        return;
+      }
+
+      // 18b. Issue / Register Delegation
+      if (req.method === 'POST' && url.pathname === '/api/v1/delegations') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            const delegationId = data.delegationId || `del_${data.delegateeId || 'agent'}_${Date.now()}`;
+            const now = new Date();
+            const validityHours = Number(data.validityHours) || 24;
+            const expiresAt = data.expiresAt || new Date(now.getTime() + validityHours * 3600 * 1000).toISOString();
+            const allowedTools = Array.isArray(data.allowedTools)
+              ? data.allowedTools
+              : (data.allowedTools ? String(data.allowedTools).split(',').map((s: string) => s.trim()).filter(Boolean) : ['*']);
+            const allowedResourcePatterns = Array.isArray(data.allowedResourcePatterns)
+              ? data.allowedResourcePatterns
+              : ['*'];
+            const constraints = {
+              allowedTools: allowedTools.length ? allowedTools : ['*'],
+              allowedResourcePatterns,
+              maxTransactionValue: data.maxTransactionValue !== undefined && data.maxTransactionValue !== '' ? Number(data.maxTransactionValue) : undefined,
+              cumulativeValueLimit: data.cumulativeValueLimit !== undefined && data.cumulativeValueLimit !== '' ? Number(data.cumulativeValueLimit) : undefined,
+              requireApprovalAbove: data.requireApprovalAbove !== undefined && data.requireApprovalAbove !== '' ? Number(data.requireApprovalAbove) : undefined
+            };
+            const envelope = this.delegationManager.createDelegation(
+              {
+                delegationId,
+                tenantId: data.tenantId || 'tenant_acme',
+                parentDelegationId: data.parentDelegationId || undefined,
+                delegatorType: 'HUMAN',
+                delegatorId: data.delegatorId || 'user_ciso_jane',
+                delegateeId: data.delegateeId,
+                taskId: data.taskId || `task_${Date.now()}`,
+                purpose: data.purpose || 'Authorized operations',
+                constraints,
+                notBefore: now.toISOString(),
+                expiresAt
+              },
+              this.keyPair.privateKey
+            );
+            res.writeHead(201, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(envelope));
+          } catch (err: unknown) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
         return;
       }
 
