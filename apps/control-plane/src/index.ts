@@ -941,12 +941,21 @@ export class ChronicleControlPlane {
   }
 }
 
-// Standalone runner
-if (process.argv[1]?.endsWith('control-plane/src/index.ts')) {
+// Standalone runner & Cloud Deployment entrypoint
+const isMain = process.argv[1] && (
+  process.argv[1].replace(/\\/g, '/').endsWith('control-plane/src/index.ts') ||
+  process.env.CHRONICLE_START_SERVER === 'true' ||
+  import.meta.url.replace(/\\/g, '/').endsWith(process.argv[1].replace(/\\/g, '/'))
+);
+
+if (isMain) {
+  const port = Number(process.env.PORT) || 3000;
+  const host = process.env.HOST || '0.0.0.0';
   const controlPlane = new ChronicleControlPlane();
-  const server = controlPlane.createHttpServer(3000);
-  server.listen(3000, () => {
-    console.log('[Chronicle Control Plane] Online at http://localhost:3000');
-    console.log('[Chronicle Control Plane] Dashboard available at http://localhost:3000/');
+  const server = controlPlane.createHttpServer(port);
+  server.listen(port, host, () => {
+    console.log(`[Chronicle Control Plane] Online at http://${host}:${port}`);
+    console.log(`[Chronicle Control Plane] Dashboard available at http://${host}:${port}/`);
   });
 }
+

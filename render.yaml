@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: chronicle-control-plane
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: "echo 'Chronicle Autonomous Action Control Plane ready'"
+    startCommand: "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/control-plane/src/index.ts"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: CHRONICLE_START_SERVER
+        value: "true"
