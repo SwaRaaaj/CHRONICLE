@@ -205,6 +205,13 @@ export function parsePolicyDSL(source: string): PolicyAST {
     consume('KEYWORD', 'WHEN');
 
     while (peek().type !== 'EOF' && peek().value !== 'REQUIRE_APPROVAL_ABOVE') {
+      // Check for NOT prefix
+      let negated = false;
+      if (peek().type === 'KEYWORD' && peek().value === 'NOT') {
+        consume('KEYWORD', 'NOT');
+        negated = true;
+      }
+
       // Parse one condition: <field> <op> <value>
       const fieldToken = consume();
       const opToken = consume();
@@ -241,16 +248,22 @@ export function parsePolicyDSL(source: string): PolicyAST {
         else parsedValue = idToken.value;
       }
 
+      // Check connector: AND vs OR
+      let connector: 'AND' | 'OR' = 'AND';
+      if (peek().type === 'KEYWORD' && (peek().value === 'AND' || peek().value === 'OR')) {
+        connector = consume('KEYWORD').value as 'AND' | 'OR';
+      }
+
       conditions.push({
         field: fieldToken.value,
         operator: op,
         value: parsedValue,
+        connector,
+        negated,
       });
 
-      // Handle AND connector
-      if (peek().type === 'KEYWORD' && peek().value === 'AND') {
-        consume('KEYWORD', 'AND');
-      } else {
+      // If next is not a condition or connector, stop condition loop
+      if (peek().type === 'EOF' || peek().value === 'REQUIRE_APPROVAL_ABOVE') {
         break;
       }
     }
@@ -288,7 +301,7 @@ export function evaluatePolicyDSL(
   }
 
   // Resolve dot-path fields
-  function resolveField(path: string): unknown {
+  function resolveField(path: string, condValue?: unknown): unknown {
     if (path === 'amount') return action.parameters?.amount;
     if (path === 'tool') return action.tool;
     if (path === 'actionType') return action.actionType;
@@ -299,6 +312,15 @@ export function evaluatePolicyDSL(
     if (path === 'agent.risk_class' || path === 'agent.riskClass') return context.agent?.riskClass;
     if (path === 'task.type' || path === 'task.declaredPurpose') return context.task?.declaredPurpose;
 
+    // Sequence check (§47, §48)
+    if (path === 'sequence.has_occurred') {
+      const history = (context as any)?.history || (context as any)?.previousActions || action.parameters?.__history || [];
+      if (Array.isArray(history)) {
+        return history.some((h: any) => h.tool === condValue || h.actionType === condValue);
+      }
+      return false;
+    }
+
     // Check action parameters
     if (path.startsWith('parameters.')) {
       const pKey = path.slice(11);
@@ -308,15 +330,19 @@ export function evaluatePolicyDSL(
     return undefined;
   }
 
-  // Evaluate conditions
-  for (const cond of policy.conditions) {
-    const actual = resolveField(cond.field);
+  // Evaluate single condition
+  function evalSingle(cond: (typeof policy.conditions)[0]): boolean {
+    const actual = resolveField(cond.field, cond.value);
     const expected = cond.value;
 
     let satisfied = false;
     switch (cond.operator) {
       case '==':
-        satisfied = String(actual) === String(expected);
+        if (cond.field === 'sequence.has_occurred') {
+          satisfied = !!actual;
+        } else {
+          satisfied = String(actual) === String(expected);
+        }
         break;
       case '!=':
         satisfied = String(actual) !== String(expected);
@@ -354,11 +380,43 @@ export function evaluatePolicyDSL(
         satisfied = false;
     }
 
-    if (!satisfied) {
+    return cond.negated ? !satisfied : satisfied;
+  }
+
+  // Evaluate conditions using DNF (Disjunctive Normal Form):
+  // Clauses are separated by OR. Each clause contains conditions conjoined by AND.
+  if (policy.conditions.length > 0) {
+    const clauses: (typeof policy.conditions)[] = [];
+    let currentClause: (typeof policy.conditions) = [];
+
+    for (let idx = 0; idx < policy.conditions.length; idx++) {
+      const c = policy.conditions[idx];
+      currentClause.push(c);
+      if (c.connector === 'OR' || idx === policy.conditions.length - 1) {
+        clauses.push(currentClause);
+        currentClause = [];
+      }
+    }
+
+    // At least one clause must evaluate to true
+    let anyClausePassed = false;
+    let failureReason = '';
+
+    for (const clause of clauses) {
+      const allInClausePassed = clause.every(c => evalSingle(c));
+      if (allInClausePassed) {
+        anyClausePassed = true;
+        break;
+      }
+    }
+
+    if (!anyClausePassed) {
+      const firstFailed = policy.conditions.find(c => !evalSingle(c));
+      const actual = firstFailed ? resolveField(firstFailed.field, firstFailed.value) : undefined;
       return {
         effect: 'DENY',
         matched: false,
-        reason: `Condition '${cond.field} ${cond.operator} ${JSON.stringify(cond.value)}' not satisfied (actual: ${JSON.stringify(actual)})`,
+        reason: `Condition '${firstFailed?.negated ? 'NOT ' : ''}${firstFailed?.field} ${firstFailed?.operator} ${JSON.stringify(firstFailed?.value)}' not satisfied (actual: ${JSON.stringify(actual)})`,
       };
     }
   }
@@ -504,3 +562,53 @@ export function analyzePolicyCoverage(
     denyRate: Math.round((denyCount / historicalActions.length) * 100),
   };
 }
+
+/**
+ * 6. Policy Version Regression Comparator (§51, §52)
+ */
+export function comparePolicyVersions(
+  v1: PolicyAST,
+  v2: PolicyAST,
+  suite: PolicyTestCase[]
+): {
+  regressions: PolicyTestCase[];
+  improvements: PolicyTestCase[];
+  unchanged: PolicyTestCase[];
+  v1PassRate: number;
+  v2PassRate: number;
+} {
+  const v1Report = runPolicyTests(v1, suite);
+  const v2Report = runPolicyTests(v2, suite);
+
+  const regressions: PolicyTestCase[] = [];
+  const improvements: PolicyTestCase[] = [];
+  const unchanged: PolicyTestCase[] = [];
+
+  for (let i = 0; i < suite.length; i++) {
+    const testCase = suite[i];
+    const v1Pass = v1Report.results[i]?.passed ?? false;
+    const v2Pass = v2Report.results[i]?.passed ?? false;
+
+    if (v1Pass && !v2Pass) {
+      regressions.push(testCase);
+    } else if (!v1Pass && v2Pass) {
+      improvements.push(testCase);
+    } else {
+      unchanged.push(testCase);
+    }
+  }
+
+  const v1PassRate = suite.length === 0 ? 100 : Math.round((v1Report.passed / suite.length) * 100);
+  const v2PassRate = suite.length === 0 ? 100 : Math.round((v2Report.passed / suite.length) * 100);
+
+  return {
+    regressions,
+    improvements,
+    unchanged,
+    v1PassRate,
+    v2PassRate,
+  };
+}
+
+export * from './shadow.ts';
+

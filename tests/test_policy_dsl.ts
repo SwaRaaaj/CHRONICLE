@@ -8,6 +8,7 @@ import {
   evaluatePolicyDSL,
   runPolicyTests,
   analyzePolicyCoverage,
+  comparePolicyVersions,
 } from '../packages/policy-dsl/src/index.ts';
 import type { ActionRequest, ActionContext, PolicyTestCase, ActionHistoryRecord } from '../packages/core-types/src/index.ts';
 
@@ -157,6 +158,89 @@ async function runPolicyDSLTests() {
   assert(coverageReport.totalHistoricalActions === 2, 'analyzes historical actions total');
   assert(coverageReport.coveragePercentage === 50, 'computes 50% explicit policy coverage (1 covered, 1 unmanaged fall-through) (§53)');
   assert(coverageReport.denyRate === 50, 'correctly registers 50% default fail-closed deny rate (§54)');
+
+  // 9. Boolean OR and NOT Condition Logic (§22, §50)
+  const orNotDsl = `
+    POLICY or_not_test
+    ALLOW stripe_refund
+    WHEN NOT resource.sensitivity == "RESTRICTED" AND amount <= 1000 OR workflow.state == "APPROVED"
+  `;
+  const orNotAst = parsePolicyDSL(orNotDsl);
+  assert(orNotAst.conditions.length === 3, 'parses 3 conditions with OR/NOT tokens');
+  assert(orNotAst.conditions[0].negated === true, 'detects NOT negation on first condition');
+  assert(orNotAst.conditions[1].connector === 'OR', 'detects OR connector on second condition');
+
+  // Test evaluation with OR: high amount ($8000) but workflow is APPROVED -> Should ALLOW via second OR clause
+  const orTestReq: ActionRequest = {
+    ...mockReq,
+    parameters: { amount: 8000 },
+    resource: { id: 'ch_1', type: 'charge', sensitivity: 'INTERNAL', environment: 'production' }
+  };
+  const orEval = evaluatePolicyDSL(orNotAst, orTestReq, { workflowState: 'APPROVED' });
+  assert(orEval.matched === true && orEval.effect === 'ALLOW', 'evaluates OR condition successfully when second clause is satisfied');
+
+  // Test evaluation with NOT: restricted resource -> First clause fails due to NOT
+  const notTestReq: ActionRequest = {
+    ...mockReq,
+    parameters: { amount: 500 },
+    resource: { id: 'ch_1', type: 'charge', sensitivity: 'RESTRICTED', environment: 'production' }
+  };
+  const notEval = evaluatePolicyDSL(orNotAst, notTestReq, { workflowState: 'PENDING' });
+  assert(notEval.matched === false && notEval.effect === 'DENY', 'evaluates NOT negation properly to deny restricted resource');
+
+  // 10. Sequence Condition Check (§47, §48)
+  const seqDsl = `
+    POLICY seq_prereq_test
+    ALLOW stripe_refund
+    WHEN sequence.has_occurred == "search_customers"
+  `;
+  const seqAst = parsePolicyDSL(seqDsl);
+  const seqPassed = evaluatePolicyDSL(seqAst, mockReq, {
+    history: [{ tool: 'search_customers', actionType: 'search_customers' }]
+  } as any);
+  assert(seqPassed.matched === true && seqPassed.effect === 'ALLOW', 'sequence.has_occurred condition passes when prerequisite tool exists in history');
+
+  const seqFailed = evaluatePolicyDSL(seqAst, mockReq, {
+    history: [{ tool: 'other_tool', actionType: 'other_tool' }]
+  } as any);
+  assert(seqFailed.matched === false && seqFailed.effect === 'DENY', 'sequence.has_occurred condition denies when prerequisite tool missing');
+
+  // 11. Policy Version Regression Comparator (§51, §52)
+  const v1Dsl = `ALLOW stripe_refund WHEN amount <= 1000`;
+  const v2Dsl = `ALLOW stripe_refund WHEN amount <= 500`;
+  const v1Ast = parsePolicyDSL(v1Dsl);
+  const v2Ast = parsePolicyDSL(v2Dsl);
+  const regressionReport = comparePolicyVersions(v1Ast, v2Ast, [
+    {
+      testId: 'reg_1',
+      name: 'amount 750',
+      policyId: 'p',
+      mockAction: { ...mockReq, parameters: { amount: 750 } },
+      mockContext: mockCtx as ActionContext,
+      expectedDecision: 'ALLOW'
+    }
+  ]);
+  assert(regressionReport.regressions.length === 1, 'detects policy regression where action was allowed in v1 but denied in v2');
+
+  // 12. Shadow Policy Comparator (§29, §30, §51, §52, §61, §62)
+  const { ShadowPolicyComparator } = await import('../packages/policy-dsl/src/shadow.ts');
+  const shadowReport = ShadowPolicyComparator.compare(v1Ast, v2Ast, [
+    {
+      actionId: 'act_shadow_1',
+      sessionId: 'sess_1',
+      taskId: 'task_1',
+      agentId: 'agent_1',
+      actionType: 'stripe_refund',
+      tool: 'stripe_refund',
+      resourceId: 'ch_1',
+      parameters: { amount: 750 },
+      decision: 'ALLOW',
+      timestamp: new Date().toISOString()
+    }
+  ]);
+  assert(shadowReport.totalEvaluated === 1, 'shadow comparator evaluates historical action');
+  assert(shadowReport.divergenceCount === 1, 'shadow comparator identifies decision divergence');
+  assert(shadowReport.summary.newlyDenied === 1, 'shadow comparator counts newly denied contraction');
 
   console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
   if (failed > 0) {
