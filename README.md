@@ -1,6 +1,4 @@
-# Chronicle: Autonomous Action Control Plane (AACT)
-
-### Behavior-Aware, Sequence-Aware Authorization & Runtime Side-Effect Control for Autonomous AI Agents
+<div align="center">
 
 ```
    ██████╗██╗  ██╗██████╗  ██████╗ ███╗   ██╗██╗ ██████╗██╗     ███████╗
@@ -9,44 +7,119 @@
   ██║     ██╔══██║██╔══██╗██║   ██║██║╚██╗██║██║██║     ██║     ██╔══╝  
   ╚██████╗██║  ██║██║  ██║╚██████╔╝██║ ╚████║██║╚██████╗███████╗███████╗
    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝ ╚═════╝╚══════╝╚══════╝
-  Autonomous Action Control Plane (AACT) | Zero-Trust AI Agent Kernel
 ```
 
-[![Node.js](https://img.shields.io/badge/node-%3E%3D22.6.0-22c55e.svg?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/typescript-native%20strip--types-3178c6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Cryptography](https://img.shields.io/badge/cryptography-Ed25519%20%7C%20SHA--256%20Merkle-6366f1.svg?style=for-the-badge&logo=target&logoColor=white)](#)
-[![Latency](https://img.shields.io/badge/latency-p50%200.71ms%20%7C%20p99%201.61ms-06b6d4.svg?style=for-the-badge)](#)
-[![Throughput](https://img.shields.io/badge/throughput-1%2C307%20decisions%2Fsec-f59e0b.svg?style=for-the-badge)](#)
-[![Security](https://img.shields.io/badge/adversarial%20suite-14%2F14%20neutralized-emerald.svg?style=for-the-badge)](#)
-[![Unit Tests](https://img.shields.io/badge/test%20suite-150%2F150%20passing-22c55e.svg?style=for-the-badge)](#)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge&logo=github)](CONTRIBUTING.md)
-[![Author](https://img.shields.io/badge/author-Swaraj-ec4899.svg?style=for-the-badge)](#)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=for-the-badge)](#)
+# CHRONICLE (AACT)
+### **Autonomous Action Control Plane for AI Agents**
+#### *Behavior-Aware, Sequence-Aware Authorization & Runtime Side-Effect Control Kernel*
+
+<br/>
+
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D22.6.0-22c55e.svg?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Native%20Strip--Types-3178c6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Cryptography](https://img.shields.io/badge/Cryptography-Ed25519%20%7C%20SHA--256%20Merkle-6366f1.svg?style=for-the-badge&logo=target&logoColor=white)](#)
+[![Latency](https://img.shields.io/badge/Latency-p50%200.71ms%20%7C%20p99%201.61ms-06b6d4.svg?style=for-the-badge)](#)
+[![Throughput](https://img.shields.io/badge/Throughput-1%2C307%20decisions%2Fsec-f59e0b.svg?style=for-the-badge)](#)
+[![Security Suite](https://img.shields.io/badge/Adversarial%20Attacks-14%2F14%20Neutralized-emerald.svg?style=for-the-badge)](#)
+[![Unit Tests](https://img.shields.io/badge/Test%20Matrix-150%2F150%20Passing-22c55e.svg?style=for-the-badge)](#)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge&logo=github)](CONTRIBUTING.md)
+[![Architect](https://img.shields.io/badge/Architect-Swaraj-ec4899.svg?style=for-the-badge)](#)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+
+<br/>
+
+**[Explore Documentation](#table-of-contents)** • **[Quickstart](#19-quickstart--local-deployment-guide)** • **[Architecture God Diagram](#3-high-level-system-topology)** • **[Attack Suite](#15-adversarial-attack-neutralization-matrix-1414-verified)** • **[REST API Reference](#17-complete-rest-api-reference)** • **[Contributing](#20-contributing-to-chronicle-community-rfcs--pull-requests)**
 
 ---
 
-## 0. Author & System Architecture Attribution
+</div>
 
-- **Founder & Principal Systems Architect:** **Swaraj**  
-- **System Specification:** Chronicle Autonomous Action Control Plane (AACT)
-- **Standard Conformance:** RFC 8785 (JSON Canonicalization Scheme - JCS), RFC 8032 (Edwards-Curve Digital Signature Algorithm - Ed25519), RFC 6962 (Certificate Transparency Merkle Auditing), JSON-RPC 2.0 (Model Context Protocol - MCP).
-- **Official Repository:** [`https://github.com/SwaRaaaj/CHRONICLE`](https://github.com/SwaRaaaj/CHRONICLE)
-- **Community Slack & RFC Discussions:** Open for Pull Requests, Architecture Reviews, and Issues.
+> [!IMPORTANT]
+> **Production Status (v1.0.0 GA)**: Chronicle has passed all **150 automated verification suites** and neutralized **14/14 adversarial attack vectors** with zero runtime dependencies on external AI models in the blocking path. Core authorization latency operates between **0.71 ms and 1.34 ms**.
 
 ---
 
-## 1. Executive Summary & The Autonomous Agency Paradox
+## Table of Contents
 
-### The Fundamental Flaw of Traditional Identity & Access Management (IAM)
-Traditional enterprise access control systems (RBAC, ABAC, OAuth 2.0 Scopes, AWS IAM Policies) evaluate a static, two-dimensional authorization function:
+- [0. Author & System Attribution](#0-author--system-attribution)
+- [1. Executive Summary: The Autonomous Agency Paradox](#1-executive-summary-the-autonomous-agency-paradox)
+  - [The Fundamental Flaw of Traditional IAM](#the-fundamental-flaw-of-traditional-iam)
+  - [The Chronicle Paradigm Shift](#the-chronicle-paradigm-shift)
+- [2. The 4-Tier Zero-Trust Ring Model](#2-the-4-tier-zero-trust-ring-model)
+- [3. High-Level System Topology](#3-high-level-system-topology)
+- [4. End-to-End Zero-Trust Runtime Lifecycle](#4-end-to-end-zero-trust-runtime-lifecycle)
+- [5. Mathematical Foundations & Security Invariants](#5-mathematical-foundations--security-invariants)
+  - [5.1 Lattice-Theoretic Monotonic Privilege Narrowing](#51-lattice-theoretic-monotonic-privilege-narrowing)
+  - [5.2 Anti-TOCTOU Canonical Parameter Hashing (RFC 8785)](#52-anti-toctou-canonical-parameter-hashing-rfc-8785)
+  - [5.3 Stateful Sequence Automata & Cross-Tool Exfiltration DFA](#53-stateful-sequence-automata--cross-tool-exfiltration-dfa)
+  - [5.4 Sliding-Window Cumulative Velocity & Structuring Defense](#54-sliding-window-cumulative-velocity--structuring-defense)
+  - [5.5 Runaway Agent Loop Circuit Breaker](#55-runaway-agent-loop-circuit-breaker)
+  - [5.6 Multi-Factor Dynamic Risk Scoring Tensor](#56-multi-factor-dynamic-risk-scoring-tensor)
+  - [5.7 Streaming Gaussian Anomaly Quantification (Welford's Algorithm)](#57-streaming-gaussian-anomaly-quantification-welfords-algorithm)
+  - [5.8 Merkle-Chained Tamper-Evident Ledger & Ed25519 Signatures](#58-merkle-chained-tamper-evident-ledger--ed25519-signatures)
+- [6. Deep-Dive Subsystem Specifications](#6-deep-dive-subsystem-specifications)
+  - [6.1 Delegation Engine & Monotonic Narrowing](#61-delegation-engine--monotonic-narrowing-packagesdelegation-manager)
+  - [6.2 Cryptographic Primitives & Grant Issuance](#62-cryptographic-primitives--grant-issuance-packagescrypto-primitives)
+  - [6.3 Sequence Detector & Invariant Engine](#63-sequence-detector--invariant-engine-packagessequence-detector)
+  - [6.4 Formal Workflow Engine & State Machine](#64-formal-workflow-engine--state-machine-packagesworkflow-engine)
+  - [6.5 Behavioral Profiling Engine](#65-behavioral-profiling-engine-packagesbehavior-engine)
+  - [6.6 Declarative Policy DSL & Shadow Comparator](#66-declarative-policy-dsl--shadow-comparator-packagespolicy-dsl)
+  - [6.7 Observation Mode & Shadow Telemetry](#67-observation-mode--shadow-telemetry-packagesobservation)
+  - [6.8 AI Policy Assistant & NLP Synthesis](#68-ai-policy-assistant--nlp-synthesis-packagesai)
+  - [6.9 Topological Blast Radius & Lateral Movement Engine](#69-topological-blast-radius--lateral-movement-engine-packagesblast-radius)
+  - [6.10 Merkle Audit Ledger & Provenance DAG](#610-merkle-audit-ledger--provenance-dag-packagesaudit-ledger)
+  - [6.11 Enterprise Identity & OIDC Federation Bridge](#611-enterprise-identity--oidc-federation-bridge-packagesintegrations)
+  - [6.12 Distributed Persistence Adapter & Database Migrations](#612-distributed-persistence-adapter--database-migrations-packagespersistence)
+  - [6.13 Developer Client SDK & Grant Verification Kernel](#613-developer-client-sdk--grant-verification-kernel-packagessdk)
+- [7. Application Tier Overview](#7-application-tier-overview)
+  - [7.1 Central Control Plane Server (:3000)](#71-central-control-plane-server-3000)
+  - [7.2 Model Context Protocol (MCP) Security Gateway (:3001)](#72-model-context-protocol-mcp-security-gateway-3001)
+  - [7.3 Unified Command-Line Interface (`aact`)](#73-unified-command-line-interface-aact)
+  - [7.4 Enterprise Cybersecurity Web Console](#74-enterprise-cybersecurity-web-console)
+- [8. Complete Monorepo Workspace Structure](#8-complete-monorepo-workspace-structure)
+- [9. Complete REST API Reference](#9-complete-rest-api-reference)
+- [10. Unified CLI Manual (`aact`)](#10-unified-cli-manual-aact)
+- [11. Adversarial Attack Neutralization Matrix (14/14 Verified)](#11-adversarial-attack-neutralization-matrix-1414-verified)
+- [12. Empirical Performance & Latency Benchmarks](#12-empirical-performance--latency-benchmarks)
+- [13. Quickstart & Local Deployment Guide](#13-quickstart--local-deployment-guide)
+- [14. Production Deployment & Kubernetes Configuration](#14-production-deployment--kubernetes-configuration)
+- [15. Contributing to Chronicle: Community RFCs & Pull Requests](#15-contributing-to-chronicle-community-rfcs--pull-requests)
+- [16. Security Vulnerability Disclosure Policy](#16-security-vulnerability-disclosure-policy)
+- [17. Frequently Asked Questions (FAQ)](#17-frequently-asked-questions-faq)
+- [18. License & Attribution](#18-license--attribution)
+
+---
+
+## 0. Author & System Attribution
+
+| Specification Metric | Architectural Standard |
+|---|---|
+| **Founder & Principal Systems Architect** | **Swaraj** |
+| **System Classification** | Autonomous Action Control Plane (AACT) / Zero-Trust AI Agent Kernel |
+| **Official Repository** | [`https://github.com/SwaRaaaj/CHRONICLE`](https://github.com/SwaRaaaj/CHRONICLE) |
+| **Canonical Cryptography Standards** | **RFC 8785** (JSON Canonicalization Scheme - JCS)<br/>**RFC 8032** (Edwards-Curve Digital Signature Algorithm - Ed25519)<br/>**RFC 6962** (Certificate Transparency Append-Only Merkle Hash Trees) |
+| **Network & Interop Protocols** | **JSON-RPC 2.0** (Model Context Protocol - MCP)<br/>**OpenID Connect Core 1.0** (Enterprise Identity Federation)<br/>**HTTP/1.1 & WebSocket** (Real-Time Action Telemetry) |
+| **Execution Guarantees** | Sub-millisecond deterministic evaluation. **Zero non-deterministic AI models in synchronous blocking path.** |
+
+---
+
+## 1. Executive Summary: The Autonomous Agency Paradox
+
+### The Fundamental Flaw of Traditional IAM
+
+Traditional enterprise cybersecurity architectures (Role-Based Access Control, Attribute-Based Access Control, OAuth 2.0 Scopes, AWS IAM Policy Documents) evaluate a static, two-dimensional authorization function:
 
 $$\mathcal{F}_{\text{traditional}} : \text{Subject} \times \text{Permission} \longrightarrow \{\text{ALLOW}, \text{DENY}\}$$
 
-In deterministic software architectures, this static check is sufficient because compiled execution paths and code branches are known at build time. **In non-deterministic autonomous AI agent networks, however, this model introduces catastrophic vulnerability.**
+In deterministic software systems, this model functions adequately because application code execution paths, control branches, and database queries are compiled and pre-determined by human developers.
 
-When an LLM agent is granted access to high-impact external tools—payment gateways (Stripe), cloud infrastructure (Kubernetes, AWS IAM), production databases (PostgreSQL), communication channels (SendGrid, Slack)—the security question is **never whether the agent has static permission to invoke the tool**. The actual zero-trust security question is:
+**In autonomous AI agent meshes, however, this model collapses completely.**
 
-> *"Given Human Sponsor Alice, Task 'Resolve Support Ticket #892', Monotonic Delegation Limit $1,000, Prior Action 'read-customer-pii', Resource Sensitivity 'CONFIDENTIAL', and Rolling-Window Velocity $4,200/hour: **SHOULD THIS EXACT $450 REFUND ON CHARGE `ch_8812` BE PERMITTED AT THIS EXACT MICROSECOND?**"*
+When an LLM agent (powered by Claude, GPT-4, Gemini, or open weights) is granted API access to high-impact external systems—payment gateways (Stripe, Adyen), production databases (PostgreSQL, Snowflake), cloud infrastructure (Kubernetes, AWS IAM, Terraform), or communication rails (SendGrid, Slack, Twilio)—the security question is **never whether the agent possesses the static permission to call the tool**.
+
+The true, zero-trust security question is:
+
+> *"Given Human Sponsor Alice, Task 'Resolve Support Ticket #892', Monotonic Delegation Limit $1,000, Prior Action 'read-customer-pii', Resource Sensitivity 'CONFIDENTIAL', Rolling Velocity $4,200/hour, and DFA State S1: **SHOULD THIS EXACT $450 REFUND ON CHARGE `ch_8812` BE PERMITTED AT THIS EXACT MICROSECOND?**"*
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -75,42 +148,50 @@ When an LLM agent is granted access to high-impact external tools—payment gate
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Chronicle is the **runtime security kernel for autonomous AI systems**. It decouples intent generation (the LLM) from execution capability (the enterprise tool), ensuring that no AI agent can ever perform an unverified, over-privileged, anomalous, or tampered side effect in the real world.
+### The Chronicle Paradigm Shift
+
+Chronicle decouples **Intent Generation** (the non-deterministic LLM) from **Execution Capability** (the enterprise side-effect tool):
+
+1. **No Direct Tool Credentials**: Autonomous AI agents never hold direct API keys, database credentials, or cloud secrets.
+2. **Deterministic Interception**: Every proposed action is intercepted at the Model Context Protocol (MCP) or SDK layer and evaluated deterministically in sub-millisecond time.
+3. **Cryptographic Proof Tokens**: Protected downstream tools execute side effects *only* upon presentation of a freshly signed, single-use, canonical hash-bound `AuthorizationGrant` signed by the Chronicle Control Plane.
+4. **Zero AI in the Ring 1 Blocking Loop**: Authorization rules, invariants, and sequence automata are purely deterministic mathematical algorithms. No probabilistic LLM decides whether an action is authorized.
 
 ---
 
-## 2. Architectural Philosophy: The Autonomous Agent Ring Model
+## 2. The 4-Tier Zero-Trust Ring Model
 
-Chronicle adapts classical operating system protection rings (Ring 0 through Ring 3) into the **Zero-Trust Autonomous Execution Ring Model**:
+Inspired by CPU hardware protection rings (Ring 0 through Ring 3), Chronicle establishes the **Autonomous Execution Ring Model**:
 
 ```
  ═══════════════════════════════════════════════════════════════════════════════
   RING 0: Hardware Root of Trust & Human Sponsors
-  • Hardware Security Modules (HSM) / KMS Ed25519 Root Keys
-  • Human Sponsors (CISO, VP Engineering, Financial Controllers)
-  • Root Delegation Envelopes (Ceilings, Lifetimes, Resource Scopes)
+  • Hardware Security Modules (HSM) / Cloud KMS Ed25519 Root Keypairs
+  • Authenticated Human Sponsors (CISO, VP Engineering, Financial Controllers)
+  • Root Delegation Envelopes (Ceilings, Lifetimes, Permissible Tools & Resources)
  ───────────────────────────────────────────────────────────────────────────────
-       │ Issues Signed Delegation Envelopes (Monotonic Lattice Root)
+       │ Issues Signed Delegation Envelopes (Monotonic Lattice Root D_0)
        ▼
   RING 1: Chronicle AACT Kernel & Cryptographic Ledger
-  • Monotonic Narrowing Lattice Verifier
+  • Monotonic Narrowing Lattice Verifier (D_c ⊑ D_p)
   • Stateful Sequence Invariant Automaton (Deterministic Finite Automata)
-  • Anti-Smurfing Rolling Velocity Engine & Runaway Loop Breaker
-  • Ephemeral Grant Signer (RFC 8032 Ed25519)
+  • Anti-Smurfing Rolling Cumulative Velocity Engine & Runaway Loop Breaker
+  • Formal Business Workflow State Machine & Business Invariant Gate
+  • Ephemeral Grant Signer (RFC 8032 Ed25519, 60s TTL, Nonce, JCS Hash)
   • Append-Only Merkle Hash Chain (RFC 6962 Tamper-Evident Ledger)
  ───────────────────────────────────────────────────────────────────────────────
-       │ Emits Signed Single-Use Ephemeral Grants (60s TTL, Nonce, JCS Hash)
+       │ Emits Single-Use Cryptographically Signed Authorization Grants
        ▼
   RING 2: Security Gateways & Proxy Interceptors
   • Model Context Protocol (MCP) Reverse Proxy Gateway (:3001)
-  • Parameter Canonicalizer (RFC 8785) & Anti-TOCTOU Verifier
+  • RFC 8785 Canonical JSON Parameter Canonicalizer & Anti-TOCTOU Verifier
   • Client SDK Local Grant Verification Kernel (@chronicle/sdk)
  ───────────────────────────────────────────────────────────────────────────────
-       │ Proxies Authenticated Calls with Cryptographic Proof Header
+       │ Proxies Authenticated Execution with X-Chronicle-Grant Header
        ▼
-  RING 3: Untrusted Autonomous Agents & Enterprise Tools
+  RING 3: Untrusted Autonomous Agents & Downstream Tools
   • LLM Autonomous Reasoning Cores (Claude 3.7, GPT-4o, Gemini 2.5, DeepSeek)
-  • Sub-Agent Swarms & Dynamic Delegated Workers
+  • Dynamic Sub-Agent Swarms & Delegated Worker Threads
   • Protected Enterprise Tools (Stripe, SWIFT, AWS IAM, Kubernetes, PostgreSQL)
  ═══════════════════════════════════════════════════════════════════════════════
 ```
@@ -118,8 +199,6 @@ Chronicle adapts classical operating system protection rings (Ring 0 through Rin
 ---
 
 ## 3. High-Level System Topology
-
-The physical architecture of Chronicle deployed in an enterprise environment:
 
 ```mermaid
 flowchart TB
@@ -196,8 +275,6 @@ flowchart TB
 
 ## 4. End-to-End Zero-Trust Runtime Lifecycle
 
-The complete cryptographic interaction flow from agent tool dispatch to downstream execution:
-
 ```mermaid
 sequenceDiagram
     autonumber
@@ -248,9 +325,11 @@ sequenceDiagram
 
 ---
 
-## 5. Mathematical Monotonic Privilege Narrowing Lattice
+## 5. Mathematical Foundations & Security Invariants
 
-In multi-agent architectures, an agent frequently delegates sub-tasks to dynamic worker sub-agents. Chronicle prevents privilege escalation by enforcing a **formal mathematical security lattice** $(\mathcal{L}, \sqsubseteq)$:
+### 5.1 Lattice-Theoretic Monotonic Privilege Narrowing
+
+Every sub-agent spawned in an autonomous swarm is bound by a **formal mathematical security lattice** $(\mathcal{L}, \sqsubseteq)$:
 
 $$\mathcal{L} = \langle \mathcal{D}, \sqsubseteq, \sqcap, \sqcup, \top, \bot \rangle$$
 
@@ -260,8 +339,8 @@ $$D = \langle \mathcal{T}, \mathcal{R}, \mathcal{M}_{\text{tx}}, \mathcal{M}_{\t
 
 - $\mathcal{T} \subseteq \Sigma_{\text{tools}}$: Finite set of permitted tool names.
 - $\mathcal{R} \subseteq \Sigma_{\text{resources}}$: Finite set of resource path glob patterns.
-- $\mathcal{M}_{\text{tx}} \in \mathbb{R}^+$: Maximum transaction value ceiling for a single invocation.
-- $\mathcal{M}_{\text{cumul}} \in \mathbb{R}^+$: Maximum cumulative financial ceiling across task lifetime.
+- $\mathcal{M}_{\text{tx}} \in \mathbb{R}^+$: Maximum financial ceiling for any single transaction.
+- $\mathcal{M}_{\text{cumul}} \in \mathbb{R}^+$: Cumulative financial ceiling across the entire task lifetime.
 - $\mathcal{I}_{\text{valid}} = [t_{\text{start}}, t_{\text{end}}]$: Absolute temporal validity window.
 
 ```mermaid
@@ -283,8 +362,8 @@ graph TD
     D1 -.->|REJECTED BY LATTICE| D3
 ```
 
-### The Monotonic Invariant Theorem
-For any child delegation $D_c$ derived from parent delegation $D_p$, the monotonic relation $D_c \sqsubseteq D_p$ holds if and only if all five invariant conditions are satisfied simultaneously:
+#### The Monotonic Invariant Theorem
+For child delegation $D_c$ derived from parent delegation $D_p$, monotonic narrowing $D_c \sqsubseteq D_p$ holds if and only if all five invariant criteria are met:
 
 $$D_c \sqsubseteq D_p \iff \begin{cases}
 \mathcal{T}_c \subseteq \mathcal{T}_p & \text{(Tool set must be a strict subset)} \\
@@ -294,23 +373,14 @@ $$D_c \sqsubseteq D_p \iff \begin{cases}
 t_{\text{start}, c} \ge t_{\text{start}, p} \;\wedge\; t_{\text{end}, c} \le t_{\text{end}, p} & \text{(Lifetime must be fully enclosed within parent window)}
 \end{cases}$$
 
-### Chain Monotonicity Proof
-For any arbitrary delegation chain of depth $k$ rooted at Human Sponsor $A_0$:
+#### Chain Monotonicity Proof
+For any delegation chain of arbitrary depth $k$ rooted at Human Sponsor $A_0$:
 
 $$\forall t \in \mathcal{I}_{\text{valid}}, \quad \text{Privileges}(A_k, t) \subseteq \text{Privileges}(A_{k-1}, t) \subseteq \dots \subseteq \text{Privileges}(A_0, t)$$
 
-**Security Consequence:** An autonomous agent can *never* confer greater permissions, larger financial budgets, wider resource access, or longer lifetimes than it was granted. Any attempt returns `MONOTONIC_NARROWING_VIOLATION` at zero latency.
-
 ---
 
-## 6. Cryptographic Parameter Binding & Anti-TOCTOU Architecture
-
-A critical vulnerability in agentic systems is the **Time-of-Check to Time-of-Use (TOCTOU)** race condition:
-1. Agent asks Control Plane: *"Can I refund $50 to customer Jane?"*
-2. Control Plane verifies policies and signs approval: *"Yes, ALLOWED."*
-3. The untrusted agent intercepts the signed grant, modifies the payload to *`refund(amount: $50,000, recipient: "Attacker")`*, and forwards it to the payment API.
-
-Chronicle eliminates TOCTOU entirely using **RFC 8785 Canonical Parameter Hashing**:
+### 5.2 Anti-TOCTOU Canonical Parameter Hashing (RFC 8785)
 
 ```mermaid
 flowchart LR
@@ -323,73 +393,15 @@ flowchart LR
     F -->|MISMATCH: Modified in Transit| H["ABORT: PARAMETERS_TAMPERED"]
 ```
 
-### Mathematical JCS Formulation
-Given arbitrary JSON payload $P$, Chronicle applies the JSON Canonicalization Scheme (RFC 8785):
+Chronicle enforces deterministic parameter canonicalization:
 
 $$h_{\text{params}} = \text{"sha256:"} \parallel \text{Hex}\Big(\text{SHA-256}\big(\text{JCS}(P)\big)\Big)$$
 
-The ephemeral `AuthorizationGrant` issued by Ring 1 binds $h_{\text{params}}$ inside its signature:
-
-$$\text{GrantPayload} = \langle \text{grantId}, \text{actionId}, \text{agentId}, \text{tool}, h_{\text{params}}, \text{nonce}, \text{issuedAt}, \text{expiresAt} \rangle$$
-
-$$\text{GrantSignature} = \text{Sign}_{\text{Ed25519}}\Big(\text{JCS}(\text{GrantPayload}), \;\text{PrivKey}_{\text{ControlPlane}}\Big)$$
-
-Downstream enterprise microservices recompute $h_{\text{params}}$ directly from the received HTTP body. If even a single character or parameter key order is altered, verification fails immediately with `PARAMETERS_TAMPERED`.
+Downstream enterprise microservices recompute $h_{\text{params}}$ directly from the received HTTP body. If a single character or parameter key order is altered, verification fails immediately with `PARAMETERS_TAMPERED`.
 
 ---
 
-## 7. Formal Workflow State Machine & Deterministic Business Invariants
-
-Autonomous agents cannot execute sensitive actions out of context. Chronicle couples authorization with **formal enterprise workflow state machines**:
-
-```mermaid
-stateDiagram-v2
-    [*] --> TICKET_OPEN: Agent Dispatched by Event
-
-    state "State: TICKET_OPEN" as TICKET_OPEN {
-        note left of TICKET_OPEN
-            Allowed: search_knowledge_base
-            Blocked: stripe_refund, send_email
-        end note
-    }
-
-    TICKET_OPEN --> INVESTIGATING: Agent Ingests Customer Context
-    
-    state "State: INVESTIGATING" as INVESTIGATING {
-        note left of INVESTIGATING
-            Allowed: read_crm, check_order_status
-            Blocked: stripe_refund
-        end note
-    }
-
-    INVESTIGATING --> REFUND_REQUESTED: Agent Computes Restitution
-    
-    state "State: REFUND_REQUESTED" as REFUND_REQUESTED {
-        note right of REFUND_REQUESTED
-            stripe_refund is STRICTLY BLOCKED here!
-            Prerequisite event FRAUD_CHECK_PASSED required.
-        end note
-    }
-
-    REFUND_REQUESTED --> APPROVED: Prerequisite Event: FRAUD_CHECK_PASSED
-    APPROVED --> REFUND_EXECUTED: stripe_refund ALLOWED (Receipt Signed)
-    REFUND_EXECUTED --> [*]: Merkle Receipt Sealed
-```
-
-### Deterministic Business Invariants (§41)
-Chronicle evaluates mathematical assertions prior to grant issuance:
-1. **Conservation of Value Invariant**:
-   $$\text{RefundAmount} \le \text{OriginalChargeAmount} - \sum \text{PriorRefunds}$$
-2. **Double-Spend Invariant**: Exactly one refund invocation per unique `chargeId`.
-3. **Dual-Custody / Four-Eyes Invariant**: High-risk deployments require approvals from two distinct human identities ($Sponsor_1 \ne Sponsor_2$).
-4. **Separation of Duties Invariant**: An agent that generates a purchase order cannot approve the corresponding payment invoice.
-
----
-
-## 8. Stateful Sequence Automata & Behavioral Defenses
-
-### Cross-Tool Exfiltration DFA
-Isolated tool invocations frequently appear benign in isolation. When chained, they represent severe data exfiltration attacks. Chronicle maintains stateful Deterministic Finite Automata (DFA) per session:
+### 5.3 Stateful Sequence Automata & Cross-Tool Exfiltration DFA
 
 ```mermaid
 stateDiagram-v2
@@ -422,145 +434,61 @@ stateDiagram-v2
     Trap_Exfiltration --> [*]: Incident Emitted to Merkle Ledger
 ```
 
-### Cumulative Structuring Defense (Anti-Smurfing Engine)
-To evade an individual approval threshold of $1,000, an attacker or runaway agent might dispatch twenty sequential $900 refunds. Chronicle evaluates a **sliding-window cumulative velocity function**:
+Chronicle evaluates the sequence state of the session before approving an action. When a forbidden sequence is attempted, the state automaton transitions to a trap state and returns `FORBIDDEN_SEQUENCE`.
+
+---
+
+### 5.4 Sliding-Window Cumulative Velocity & Structuring Defense
+
+To defeat structuring attacks ("smurfing"), Chronicle computes cumulative velocity across a rolling temporal window $W$:
 
 $$\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) = \sum_{a \in \mathcal{H}_{\text{task}}} \Big\{ a.\text{parameters}.\text{amount} \;\Big|\; a.\text{decision} = \text{"ALLOW"} \;\wedge\; (t_{\text{now}} - a.\text{timestamp}) \le W \Big\}$$
 
 $$\text{If } \Big(\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) + \text{current}.\text{amount}\Big) > D.\text{constraints}.\text{cumulativeValueLimit} \implies \mathbf{DENY}(\text{CUMULATIVE-LIMIT-EXCEEDED})$$
 
-### Runaway Agent Loop Breaker
-When an LLM agent enters an infinite invocation loop, Chronicle trips a circuit breaker over a 15-second rolling window:
+---
+
+### 5.5 Runaway Agent Loop Circuit Breaker
+
+When an LLM enters an infinite tool loop, Chronicle's invocation counter trips a circuit breaker over a 15-second window:
 
 $$\text{Count}\Big( a_i \mid a_i.\text{tool} = \text{tool}_{\text{curr}} \;\wedge\; a_i.\text{hash} = \text{hash}_{\text{curr}} \;\wedge\; (t_{\text{now}} - t_i) \le 15\text{s} \Big) \ge 5 \implies \mathbf{DENY}(\text{RUNAWAY-LOOP-DETECTED})$$
 
 ---
 
-## 9. Statistical Behavioral Baselining & Gaussian Anomaly Detection
+### 5.6 Multi-Factor Dynamic Risk Scoring Tensor
 
-In addition to deterministic rules, Chronicle runs continuous statistical behavioral profiling via `@chronicle/behavior-engine`:
+Chronicle computes a deterministic risk score $\mathcal{R} \in [0, 100]$ using a multi-factor tensor:
 
-```mermaid
-flowchart TD
-    A["Incoming Tool Invocation<br/>(Tool, Amount, Resource)"] --> B["Streaming Gaussian Baseline<br/>(Welford's Algorithm: Mean & StdDev)"]
-    B --> C["Compute Z-Score<br/>Z = (x - μ) / σ"]
-    C --> D{"Z-Score > 3.5<br/>Extreme Outlier?"}
-    D -->|YES| E["Elevate Risk Tensor (+40 pts)<br/>Trigger Advisory Alert & Shadow Log"]
-    D -->|NO| F["Update Rolling Distribution<br/>Normal Behavioral Baseline"]
-    E --> G["Advisory Feed into Action Gate"]
-    F --> G
-```
+$$\mathcal{R} = \min\left(100, \; w_{\text{base}} \cdot B(T) + w_{\text{res}} \cdot S(R) + w_{\text{val}} \cdot V(P) + w_{\text{seq}} \cdot H(S) + w_{\text{anom}} \cdot \mathcal{A}(Z)\right)$$
 
-### Welford's Online Algorithm for Streaming Variance
-To update the baseline in $O(1)$ time with $O(1)$ memory without storing unbounded historical arrays:
+Where:
+- $B(T) \in [0, 100]$: Intrinsic tool risk (e.g. read = 10, refund = 45, wire transfer = 90).
+- $S(R) \in [1.0, 2.5]$: Resource sensitivity multiplier (PUBLIC = 1.0, INTERNAL = 1.2, CONFIDENTIAL = 1.8, RESTRICTED = 2.5).
+- $V(P) \in [0, 100]$: Parameter value scale ($100 \times \frac{\text{amount}}{\text{ceiling}}$).
+- $H(S) \in [0, 40]$: Sequence hazard bonus from the stateful DFA.
+- $\mathcal{A}(Z) \in [0, 30]$: Statistical anomaly penalty derived from behavioral $Z$-score.
+
+**Action Gate Mapping**:
+- $\mathcal{R} < 40$: **ALLOW** (Signed Ephemeral Grant issued).
+- $40 \le \mathcal{R} \le 75$: **HOLD** (Step-Up Human Sponsor review required).
+- $\mathcal{R} > 75$: **DENY** (Execution blocked, incident recorded).
+
+---
+
+### 5.7 Streaming Gaussian Anomaly Quantification (Welford's Algorithm)
+
+Chronicle maintains online streaming Gaussian baselines per tool and agent using Welford's algorithm ($O(1)$ time and memory):
 
 $$M_k = M_{k-1} + \frac{x_k - M_{k-1}}{k}, \qquad S_k = S_{k-1} + (x_k - M_{k-1})(x_k - M_k), \qquad \sigma_k = \sqrt{\frac{S_k}{k-1}}$$
 
 $$Z = \frac{x_k - M_k}{\sigma_k}$$
 
-- **Zero-Blocking Architecture**: Statistical anomaly detection acts as an advisory input into the deterministic risk tensor. It flags anomalies without placing non-deterministic AI in the synchronous blocking path.
+Invocations with $Z > 3.5$ are flagged as extreme behavioral outliers, dynamically elevating the risk tensor.
 
 ---
 
-## 10. Declarative Policy DSL & Shadow Policy Comparator
-
-Security teams define zero-trust policy rules using Chronicle's declarative Policy DSL:
-
-```text
-POLICY finance_refund_guard
-ALLOW stripe_refund
-WHEN NOT resource.sensitivity == "RESTRICTED" 
-  AND amount <= 5000 
-  OR workflow.state == "APPROVED"
-REQUIRE_APPROVAL_ABOVE 2500
-```
-
-```mermaid
-flowchart LR
-    A["Human-Readable DSL Text"] --> B["Lexer / Tokenizer"]
-    B --> C["AST Compiler (PolicyAST)"]
-    C --> D["Disjunctive Normal Form (DNF)<br/>AND / OR / NOT Evaluator"]
-    D --> E["Deterministic Policy Gate<br/>ALLOW / HOLD / DENY"]
-
-    F["Historical Merkle Receipts"] --> G["Shadow Policy Comparator"]
-    C --> G
-    G --> H["Concordance Analysis Report<br/>• Concordance Rate: 98.4%<br/>• Newly Denied: 12<br/>• Newly Allowed: 0<br/>• Risk Delta: SAFE"]
-```
-
-### Shadow Policy Comparator (§51, §52, §53)
-Before deploying a modified policy rule to production, Chronicle replays candidate policies against hundreds of thousands of historical audit receipts:
-- Computes the exact **Concordance Rate** ($\frac{\text{MatchingDecisions}}{\text{TotalReceipts}}$).
-- Identifies newly allowed transactions (potential risk expansions).
-- Identifies newly denied transactions (potential workflow disruptions).
-- Emits safety certificates before policy migration.
-
----
-
-## 11. Dual Operating Modes: Enforcement vs. Observation
-
-Chronicle provides dual operating modes switchable at runtime via API (`POST /api/v1/mode`) or CLI (`aact mode set`):
-
-```mermaid
-flowchart TD
-    REQ["Incoming Action Request"] --> GATE{"Operating Mode?"}
-    
-    GATE -->|ENFORCEMENT MODE| ENF["Synchronous Deterministic Blocking<br/>• Violations returned as DENY<br/>• High-risk routed to HOLD<br/>• Nonce-bound grants issued"]
-    
-    GATE -->|OBSERVATION MODE| OBS["Zero-Disruption Shadow Audit<br/>• Violations transformed to ALLOW<br/>• Full shadow decision computed<br/>• Suppressed violations logged<br/>• Real-time Prometheus metrics incremented"]
-
-    ENF --> OUT1["Downstream Tool Enforces Grant"]
-    OBS --> OUT2["Tool Runs Uninterrupted + Audit Logged"]
-```
-
----
-
-## 12. Blast Radius Analytics & Graph Percolation Engine
-
-Before an agent is permitted to execute, Chronicle computes its **Blast Radius**—the worst-case systemic damage the agent could inflict if fully compromised:
-
-```mermaid
-graph TD
-    classDef agent fill:#082f49,stroke:#0ea5e9,stroke-width:2px,color:#fff;
-    classDef tool fill:#042f2e,stroke:#14b8a6,stroke-width:2px,color:#fff;
-    classDef res fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#fff;
-    classDef crit fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#fff;
-
-    AGENT["Agent: agent_finance_refund"]:::agent
-    SUB1["Sub-Agent: refund_executor"]:::agent
-    SUB2["Sub-Agent: notification_worker"]:::agent
-
-    TOOL1["Tool: stripe_refund<br/>(Ceiling: $1,000 / tx)"]:::tool
-    TOOL2["Tool: search_customers"]:::tool
-    TOOL3["Tool: send_external_email"]:::tool
-    TOOL4["Tool: send_wire_transfer<br/>(RESTRICTED)"]:::crit
-
-    RES1["Resource: charge_*"]:::res
-    RES2["Resource: customer_records"]:::res
-    RES3["Resource: email_gateway"]:::res
-    RES4["Resource: swift_core"]:::crit
-
-    AGENT --> SUB1
-    AGENT --> SUB2
-    SUB1 --> TOOL1
-    SUB1 --> TOOL2
-    SUB2 --> TOOL3
-    
-    TOOL1 --> RES1
-    TOOL2 --> RES2
-    TOOL3 --> RES3
-
-    SUB1 -.->|BLOCKED BY LATTICE| TOOL4
-    TOOL4 -.-> RES4
-```
-
-### Worst-Case Financial Exposure Formulation
-$$\text{MaxExposure}(A) = \min \left( D_A.\mathcal{M}_{\text{cumul}}, \sum_{T \in \text{ReachableTools}(A)} \text{Ceiling}(T) \times \text{MaxInvocations}(T) \right)$$
-
----
-
-## 13. Tamper-Evident Merkle-Chained Audit Ledger & Provenance DAG
-
-Every action evaluated by Chronicle commits an immutable `AuthorizationReceipt` structured as a **Merkle Hash Chain**:
+### 5.8 Merkle-Chained Tamper-Evident Ledger & Ed25519 Signatures
 
 ```mermaid
 flowchart LR
@@ -584,8 +512,7 @@ flowchart LR
     D2 --> H2
 ```
 
-### Cryptographic Hash-Chaining Formula
-For block $i$, the receipt hash $\mathcal{H}_i$ is deterministically linked to block $i-1$:
+Receipt hash chaining formula:
 
 $$\mathcal{H}_i = \text{"sha256:"} \parallel \text{Hex}\left(\text{SHA-256}\left(\begin{array}{l}
 \mathcal{H}_{i-1} \parallel \text{receiptId} \parallel \text{actionId} \parallel \text{tenantId} \parallel \text{agentId} \\
@@ -597,27 +524,207 @@ $$\text{Signature}_i = \text{Sign}_{\text{Ed25519}}\Big(\mathcal{H}_i, \;\text{P
 
 ---
 
-## 14. Enterprise Identity & OIDC Federation Bridge
+## 6. Deep-Dive Subsystem Specifications
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant IDP as Enterprise IDP (Okta / Entra ID)
-    participant OIDC as Chronicle OIDC Bridge (@chronicle/integrations)
-    participant Sponsor as Human Sponsor Registry
-    participant ControlPlane as Chronicle Control Plane
+### 6.1 Delegation Engine & Monotonic Narrowing (`packages/delegation-manager`)
+- **Monotonic Narrowing Validator**: Recursively checks that every child delegation strictly shrinks or maintains the parent's permissions.
+- **Cascading Revocation**: When a human sponsor or security officer revokes delegation $D_i$, a Breadth-First Search (BFS) traverses the delegation hierarchy and instantly revokes all descendant delegations ($D_{i+1} \dots D_{i+n}$).
+- **Intent Drift Guard**: Compares the declared task purpose with the requested tool to prevent unauthorized scope creep.
 
-    IDP->>OIDC: OIDC IdToken (JWT signed by Enterprise IdP)
-    OIDC->>OIDC: Verify JWT Signature (RS256 via JWKS Endpoint)
-    OIDC->>OIDC: Assert Claims: aud, iss, exp, tenant_id
-    OIDC->>Sponsor: Map Claims to HumanSponsor Entity
-    Sponsor->>ControlPlane: Authorize Root Delegation Envelope with Ed25519 Signature
-    ControlPlane-->>Sponsor: Root Delegation Enrolled
+### 6.2 Cryptographic Primitives & Grant Issuance (`packages/crypto-primitives`)
+- **Ed25519 Signatures**: Uses RFC 8032 curve keys with high-performance cryptographic operations (10,400+ signs/sec).
+- **RFC 8785 JCS Engine**: Canonicalizes arbitrary JSON objects by sorting keys lexicographically and normalizing number encodings.
+- **Merkle Ledger Integrity**: Traverses receipt blocks and recomputes the hash chain to mathematically prove that no historical records have been inserted, omitted, or altered.
+
+### 6.3 Sequence Detector & Invariant Engine (`packages/sequence-detector`)
+- **Deterministic Finite Automaton (DFA)**: Tracks the active security state of every agent session.
+- **Prerequisite Enforcement**: Mandates that high-impact actions (e.g. `execute_wire_transfer`) cannot execute unless prerequisite verification actions (e.g. `verify_identity`, `dual_approval`) have occurred in the exact same session.
+- **Exfiltration Tripwires**: Enforces immediate isolation if sensitive data reading is followed by outbound transmission tools.
+
+### 6.4 Formal Workflow Engine & State Machine (`packages/workflow-engine`)
+- **State-Aware Action Gates**: Links authorization to entity lifecycles (`DRAFT`, `PENDING_APPROVAL`, `APPROVED`, `EXECUTED`).
+- **Deterministic Business Invariants**:
+  - *Conservation of Value*: Refund amounts cannot exceed original payment minus prior refunds.
+  - *Idempotency*: Prevents duplicate side-effect execution using unique transaction identifiers.
+  - *Separation of Duties*: The creator of an invoice cannot be the approver of the invoice.
+
+### 6.5 Behavioral Profiling Engine (`packages/behavior-engine`)
+- **Streaming Baselines**: Computes statistical parameters per tool using streaming algorithms with $O(1)$ space complexity.
+- **Z-Score Anomaly Detection**: Quantifies deviation from typical transaction values.
+- **Entropy Scoring**: Flags sudden changes in tool invocation variety compared to baseline profiles.
+
+### 6.6 Declarative Policy DSL & Shadow Comparator (`packages/policy-dsl`)
+- **Human-Readable Policy Syntax**: Clean, intuitive security policy declarations.
+- **Boolean Operators**: Native support for `AND`, `OR`, and `NOT` clauses with Disjunctive Normal Form evaluation.
+- **Shadow Policy Comparator**: Replays proposed policy updates against hundreds of thousands of historical audit receipts to calculate concordance rates and detect unintended privilege expansions before deployment.
+
+### 6.7 Observation Mode & Shadow Telemetry (`packages/observation`)
+- **Dual Operating Modes**: Switchable at runtime via API or CLI.
+- **Zero-Disruption Auditing**: In Observation Mode, violations are transformed to `ALLOW` for safe integration testing while generating full shadow decision logs and Prometheus metrics.
+
+### 6.8 AI Policy Assistant & NLP Synthesis (`packages/ai`)
+- **Natural Language Translation**: Synthesizes formal declarative PolicyASTs from plain-English security requirements.
+- **Plain-English Explanations**: Generates human-readable explanations of complex authorization decisions for auditors.
+- **Mandatory Safety Gates (§61)**: Validates synthesized policies to block dangerous wildcards (`*`) and unconstrained amounts.
+
+### 6.9 Topological Blast Radius & Lateral Movement Engine (`packages/blast-radius`)
+- **Reachability Analysis**: Computes the complete set of tools, resources, and systems an agent could compromise.
+- **Worst-Case Financial Exposure**: Calculates the maximum financial liability bounded by the delegation envelope.
+- **Lateral Movement Percolation (`computeAttackPaths`)**: Uses graph traversal algorithms to trace multi-hop lateral movement pathways.
+
+### 6.10 Merkle Audit Ledger & Provenance DAG (`packages/audit-ledger`)
+- **Tamper-Evident Receipts**: Commits every evaluated action to a cryptographically sealed Merkle chain.
+- **Provenance Directed Acyclic Graph (DAG)**: Constructs a complete causal lineage graph tracing actions back to delegations, tasks, and human sponsors.
+
+### 6.11 Enterprise Identity & OIDC Federation Bridge (`packages/integrations`)
+- **Enterprise IDP Federation**: Bridges Microsoft Entra ID (Azure AD), Okta, and Google Workspace into Chronicle.
+- **Cryptographic Trust Boundary**: Validates enterprise RS256 JWTs and maps claims to `HumanSponsor` records while keeping internal agent authorization bound to Ed25519 keypairs.
+
+### 6.12 Distributed Persistence Adapter & Database Migrations (`packages/persistence`)
+- **Dual-Mode Persistence**: Seamlessly switches between in-memory collections (for sub-millisecond edge testing) and PostgreSQL storage.
+- **Relational Schema Migrations**:
+  - `001_initial_schema.sql`: Core tables for tenants, agents, delegations, grants, receipts, and audit logs.
+  - `002_behavior_and_workflow.sql`: Tables for behavior profiles, workflow instances, business invariants, and shadow runs.
+- **Redis Hot Cache**: Caches hot delegations and active session states for fast lookup.
+
+### 6.13 Developer Client SDK & Grant Verification Kernel (`packages/sdk`)
+- **Anti-TOCTOU Verification**: Provides microservice middlewares to verify incoming `X-Chronicle-Grant` tokens locally before executing tool logic.
+- **Zero External Network Overhead**: Recomputes canonical parameter hashes and verifies Ed25519 signatures in under 100 microseconds.
+
+---
+
+## 7. Application Tier Overview
+
+### 7.1 Central Control Plane Server (:3000)
+- Exposes 14 REST endpoints for authorization decisions, delegation management, agent quarantine, and audit verification.
+- Houses the zero-trust evaluation pipeline and Merkle ledger commit logic.
+- Serves the Enterprise Cybersecurity Web Console on `http://localhost:3000/`.
+
+### 7.2 Model Context Protocol (MCP) Security Gateway (:3001)
+- Reverse proxy implementing JSON-RPC 2.0 protocol translation for the Model Context Protocol (MCP).
+- Intercepts agent `tools/call` invocations, canonicalizes arguments, queries the Control Plane, and forwards permitted calls with cryptographic grant headers.
+
+### 7.3 Unified Command-Line Interface (`aact`)
+- 15 operational subcommands for security administrators, DevOps engineers, and security analysts.
+- Inspects system status, toggles operating modes, verifies Merkle chains, and manages agent quarantines.
+
+### 7.4 Enterprise Cybersecurity Web Console
+- 7 comprehensive panels providing live visibility into agent actions, step-up approvals, policy management, shadow comparisons, behavioral analytics, agent registries, and the cryptographic provenance DAG.
+
+---
+
+## 8. Complete Monorepo Workspace Structure
+
+```text
+d:\CHRONICLE/
+├── packages/
+│   ├── core-types/              # Domain models, enums, receipts, provenance schemas
+│   ├── crypto-primitives/       # Ed25519 keygen/sign/verify, Canonical JCS (RFC 8785), Merkle verifier
+│   ├── delegation-manager/      # Monotonic narrowing validation, cascading revocation, chain verification
+│   ├── sequence-detector/       # Stateful sequence automaton, prerequisite DFA, rolling smurfing defense
+│   ├── policy-engine/           # Dynamic risk scoring, Step-Up HOLD, counterfactual policy simulator
+│   ├── workflow-engine/         # Formal state machine, event-aware transitions, business invariants
+│   ├── behavior-engine/         # Streaming Gaussian baselines, Z-score anomaly quantification
+│   ├── policy-dsl/              # Declarative Policy DSL parser, evaluator, and ShadowPolicyComparator
+│   ├── observation/             # Observation vs Enforcement mode engine with shadow telemetry
+│   ├── ai/                      # AI Policy Assistant: NLP synthesis, plain-English explanations
+│   ├── persistence/             # Distributed PersistenceAdapter (memory + PostgreSQL) and Redis caching
+│   ├── integrations/            # Enterprise OIDC Identity Federation Bridge (Entra, Okta, Google)
+│   ├── audit-ledger/            # Append-only Merkle receipt ledger and provenance DAG builder
+│   ├── blast-radius/            # Reachability graph, financial exposure, and attack path percolation
+│   └── sdk/                     # Developer Client SDK with local anti-TOCTOU grant verification
+├── apps/
+│   ├── control-plane/           # Central AACT HTTP Server, 14 REST endpoints, and Web Dashboard (:3000)
+│   ├── cli/                     # Unified CLI tool (`aact`) with 15 commands
+│   ├── mcp-gateway/             # Model Context Protocol Proxy on :3001
+│   └── mock-enterprise-tools/   # Realistic enterprise backend services on :3002
+├── database/
+│   └── migrations/
+│       ├── 001_initial_schema.sql           # Core tables, delegations, grants, receipts, indexes
+│       └── 002_behavior_and_workflow.sql   # Behavior profiles, workflows, invariants, shadow runs
+├── tests/
+│   ├── run_tests.ts                         # 22 Core integration & unit tests
+│   ├── test_workflow_engine.ts              # 14 Workflow state machine & invariant tests
+│   ├── test_behavior_engine.ts              # 13 Statistical behavioral baseline tests
+│   ├── test_policy_dsl.ts                   # 27 Policy DSL, OR/NOT, & Shadow Comparator tests
+│   ├── test_persistence_and_events.ts       # 33 Schema, Persistence, OIDC, & Observation tests
+│   ├── test_cli_and_sdk.ts                  # 13 Unified CLI & Client SDK tests
+│   ├── test_ai_assistant.ts                 # 14 AI Policy Assistant NLP tests
+│   └── attack-scenarios/attack_suite.ts     # 14 Adversarial attack simulation tests
+├── benchmarks/
+│   └── benchmark.ts                         # Latency distribution and cryptographic throughput benchmark
+├── .github/
+│   ├── pull_request_template.md             # Formal PR checklist asserting architectural invariants
+│   └── ISSUE_TEMPLATE/
+│       ├── feature_request.md               # RFC & feature proposal template
+│       └── bug_report.md                    # Structured defect report template
+├── CONTRIBUTING.md                          # Open source contribution guide & community RFCs
+├── package.json                             # Monorepo workspaces & modular test scripts
+├── tsconfig.json                            # TypeScript ES2022 NodeNext configuration
+└── README.md                                # Complete technical architecture specification
 ```
 
 ---
 
-## 15. Adversarial Attack Verification Suite (14/14 Attacks Neutralized)
+## 9. Complete REST API Reference
+
+The Chronicle Control Plane exposes 14 REST endpoints on `http://localhost:3000`:
+
+| Method | Endpoint | Description | Request Body Key Fields |
+|:---:|---|---|---|
+| `POST` | `/api/v1/authorize` | Core authorization decision & grant issuance | `{ actionId, agentId, tool, parameters, context }` |
+| `GET` | `/api/v1/mode` | Query current operating mode | `None` |
+| `POST` | `/api/v1/mode` | Switch mode (`ENFORCEMENT` vs `OBSERVATION`) | `{ mode: "OBSERVATION" \| "ENFORCEMENT" }` |
+| `GET` | `/api/v1/telemetry/observation` | Retrieve shadow observation violation telemetry | `None` |
+| `GET` | `/api/v1/agents` | List registered agents and risk tiers | `None` |
+| `POST` | `/api/v1/agents/quarantine` | Emergency quarantine agent (Kill Switch) | `{ agentId: string, reason: string }` |
+| `POST` | `/api/v1/agents/unquarantine` | Lift agent quarantine | `{ agentId: string }` |
+| `GET` | `/api/v1/agents/:id/capabilities` | Inspect agent's authorized capabilities | `None` |
+| `GET` | `/api/v1/delegations/:id` | Inspect delegation envelope & parent hierarchy | `None` |
+| `GET` | `/api/v1/approvals/pending` | List actions currently in Step-Up `HOLD` | `None` |
+| `POST` | `/api/v1/approvals/:id/resolve` | Approve or deny a held transaction | `{ resolution: "APPROVED" \| "REJECTED", sponsorId }` |
+| `GET` | `/api/v1/blast-radius/:id` | Compute blast radius and max exposure | `None` |
+| `GET` | `/api/v1/attack-paths/:id` | Compute topological lateral movement paths | `None` |
+| `GET` | `/api/v1/audit/verify` | Verify Merkle audit chain cryptographic integrity | `None` |
+
+---
+
+## 10. Unified CLI Manual (`aact`)
+
+```bash
+# 1. System Status & Integrity
+npm run aact -- status
+
+# 2. Operating Mode Management
+npm run aact -- mode get
+npm run aact -- mode set observation
+npm run aact -- mode set enforcement
+
+# 3. Agent Lifecycle & Capabilities
+npm run aact -- agent list
+npm run aact -- agent capabilities agent_finance_refund
+npm run aact -- quarantine agent_finance_refund --reason "Anomalous tool spike detected"
+npm run aact -- unquarantine agent_finance_refund
+
+# 4. Delegation Envelope Inspection
+npm run aact -- delegation inspect del_finance_refund_root
+
+# 5. Blast Radius & Attack Path Analysis
+npm run aact -- blast-radius agent_finance_refund
+npm run aact -- attack-path agent_finance_refund
+
+# 6. Policy Testing & Counterfactual Simulation
+npm run aact -- policy test
+npm run aact -- policy simulate
+
+# 7. Decision Explanation & Audit Ledger Verification
+npm run aact -- action explain act_refund_001
+npm run aact -- audit verify
+```
+
+---
+
+## 11. Adversarial Attack Neutralization Matrix (14/14 Verified)
 
 Chronicle includes a dedicated adversarial attack test harness ([`tests/attack-scenarios/attack_suite.ts`](file:///d:/CHRONICLE/tests/attack-scenarios/attack_suite.ts)). All 14 attack vectors are tested and neutralized:
 
@@ -640,7 +747,7 @@ Chronicle includes a dedicated adversarial attack test harness ([`tests/attack-s
 
 ---
 
-## 16. Empirical Performance Benchmarks
+## 12. Empirical Performance & Latency Benchmarks
 
 Performance evaluated on Node.js v24 ([`benchmarks/benchmark.ts`](file:///d:/CHRONICLE/benchmarks/benchmark.ts)):
 
@@ -681,96 +788,26 @@ Performance evaluated on Node.js v24 ([`benchmarks/benchmark.ts`](file:///d:/CHR
 
 ---
 
-## 17. Monorepo Architecture & Package Manifest
-
-```text
-d:\CHRONICLE/
-├── packages/
-│   ├── core-types/              # Domain models, enums, receipts, provenance schemas
-│   ├── crypto-primitives/       # Ed25519 keygen/sign/verify, Canonical JCS (RFC 8785), Merkle verifier
-│   ├── delegation-manager/      # Monotonic narrowing validation, cascading revocation, chain verification
-│   ├── sequence-detector/       # Stateful sequence automaton, prerequisite DFA, rolling smurfing defense
-│   ├── policy-engine/           # Dynamic risk scoring, Step-Up HOLD, counterfactual policy simulator
-│   ├── workflow-engine/         # Formal state machine, event-aware transitions, business invariants
-│   ├── behavior-engine/         # Streaming Gaussian baselines, Z-score anomaly quantification
-│   ├── policy-dsl/              # Declarative Policy DSL parser, evaluator, and ShadowPolicyComparator
-│   ├── observation/             # Observation vs Enforcement mode engine with shadow telemetry
-│   ├── ai/                      # AI Policy Assistant: NLP synthesis, plain-English explanations
-│   ├── persistence/             # Distributed PersistenceAdapter (memory + PostgreSQL) and Redis caching
-│   ├── integrations/            # Enterprise OIDC Identity Federation Bridge (Entra, Okta, Google)
-│   ├── audit-ledger/            # Append-only Merkle receipt ledger and provenance DAG builder
-│   ├── blast-radius/            # Reachability graph, financial exposure, and attack path percolation
-│   └── sdk/                     # Developer Client SDK with local anti-TOCTOU grant verification
-├── apps/
-│   ├── control-plane/           # Central AACT HTTP Server, 14 REST endpoints, and Web Dashboard (:3000)
-│   ├── cli/                     # Unified CLI tool (`aact`) with 15 commands
-│   ├── mcp-gateway/             # Model Context Protocol Proxy on :3001
-│   └── mock-enterprise-tools/   # Realistic enterprise backend services on :3002
-├── database/
-│   └── migrations/
-│       ├── 001_initial_schema.sql           # Core tables, delegations, grants, receipts, indexes
-│       └── 002_behavior_and_workflow.sql   # Behavior profiles, workflows, invariants, shadow runs
-├── tests/
-│   ├── run_tests.ts                         # 22 Core integration & unit tests
-│   ├── test_workflow_engine.ts              # 14 Workflow state machine & invariant tests
-│   ├── test_behavior_engine.ts              # 13 Statistical behavioral baseline tests
-│   ├── test_policy_dsl.ts                   # 27 Policy DSL, OR/NOT, & Shadow Comparator tests
-│   ├── test_persistence_and_events.ts       # 33 Schema, Persistence, OIDC, & Observation tests
-│   ├── test_cli_and_sdk.ts                  # 13 Unified CLI & Client SDK tests
-│   ├── test_ai_assistant.ts                 # 14 AI Policy Assistant NLP tests
-│   └── attack-scenarios/attack_suite.ts     # 14 Adversarial attack simulation tests
-├── benchmarks/
-│   └── benchmark.ts                         # Latency distribution and cryptographic throughput benchmark
-├── package.json                             # Monorepo workspaces & modular test scripts
-├── tsconfig.json                            # TypeScript ES2022 NodeNext configuration
-└── README.md                                # Complete technical architecture specification
-```
-
----
-
-## 18. Complete REST API Reference
-
-The Chronicle Control Plane exposes 14 REST endpoints on `http://localhost:3000`:
-
-| Method | Endpoint | Description | Request Body Key Fields |
-|:---:|---|---|---|
-| `POST` | `/api/v1/authorize` | Core authorization decision & grant issuance | `{ actionId, agentId, tool, parameters, context }` |
-| `GET` | `/api/v1/mode` | Query current operating mode | `None` |
-| `POST` | `/api/v1/mode` | Switch mode (`ENFORCEMENT` vs `OBSERVATION`) | `{ mode: "OBSERVATION" \| "ENFORCEMENT" }` |
-| `GET` | `/api/v1/telemetry/observation` | Retrieve shadow observation violation telemetry | `None` |
-| `GET` | `/api/v1/agents` | List registered agents and risk tiers | `None` |
-| `POST` | `/api/v1/agents/quarantine` | Emergency quarantine agent (Kill Switch) | `{ agentId: string, reason: string }` |
-| `POST` | `/api/v1/agents/unquarantine` | Lift agent quarantine | `{ agentId: string }` |
-| `GET` | `/api/v1/agents/:id/capabilities` | Inspect agent's authorized capabilities | `None` |
-| `GET` | `/api/v1/delegations/:id` | Inspect delegation envelope & parent hierarchy | `None` |
-| `GET` | `/api/v1/approvals/pending` | List actions currently in Step-Up `HOLD` | `None` |
-| `POST` | `/api/v1/approvals/:id/resolve` | Approve or deny a held transaction | `{ resolution: "APPROVED" \| "REJECTED", sponsorId }` |
-| `GET` | `/api/v1/blast-radius/:id` | Compute blast radius and max exposure | `None` |
-| `GET` | `/api/v1/attack-paths/:id` | Compute topological lateral movement paths | `None` |
-| `GET` | `/api/v1/audit/verify` | Verify Merkle audit chain cryptographic integrity | `None` |
-
----
-
-## 19. Quickstart & Verification Guide
+## 13. Quickstart & Local Deployment Guide
 
 ### Prerequisites
-- Node.js v22.6+ or v24+ (native TypeScript execution via `--experimental-strip-types`)
+- Node.js `v22.6.0+` or `v24+` (native TypeScript execution via `--experimental-strip-types`)
 
-### 1. Execute Complete Test Matrix (150 Tests / 100% Pass)
+### 1. Execute Test Matrix (150 Tests / 100% Pass)
 ```bash
-# Core Integration & Unit Suite (22/22)
+# Core Integration Suite (22/22)
 npm test
 
-# Adversarial Attack Simulation Suite (14/14 Neutralized)
+# Adversarial Attack Simulation Suite (14/14)
 npm run test:attacks
 
 # Declarative Policy DSL & Shadow Comparator (27/27)
 npm run test:dsl
 
-# Database Migrations, Persistence, OIDC, & Observation (33/33)
+# Persistence, Migrations, OIDC, & Observation (33/33)
 npm run test:persistence
 
-# Formal Workflow State Machine & Business Invariants (14/14)
+# Formal Workflow State Machine (14/14)
 npm run test:workflows
 
 # Statistical Behavioral Baselining (13/13)
@@ -780,111 +817,134 @@ npm run test:behavior
 npm run test:cli
 ```
 
-### 2. Run the Unified CLI Tool (`aact`)
+### 2. Launch Services Locally
 ```bash
-# Check control plane status & ledger integrity
-npm run aact -- status
-
-# Inspect or switch operating mode
-npm run aact -- mode set observation
-npm run aact -- mode get
-
-# List and inspect registered agents
-npm run aact -- agent list
-npm run aact -- agent capabilities agent_finance_refund
-
-# Inspect delegation envelope and parent hierarchy
-npm run aact -- delegation inspect del_finance_refund_root
-
-# Calculate blast radius and attack paths
-npm run aact -- blast-radius agent_finance_refund
-npm run aact -- attack-path agent_finance_refund
-
-# Verify cryptographic Merkle ledger
-npm run aact -- audit verify
-```
-
-### 3. Launch Services & Web Console
-```bash
-# Start Control Plane Server & Dashboard on http://localhost:3000
+# Start Control Plane Server & Dashboard on port 3000
 npm run start:control-plane
 
-# Start MCP Security Gateway on http://localhost:3001/mcp
+# Start MCP Security Gateway on port 3001
 npm run start:mcp-gateway
 
-# Start Enterprise Backend Services on http://localhost:3002/tools
+# Start Mock Enterprise Backend Services on port 3002
 npm run start:mock-tools
 ```
 
-Open **`http://localhost:3000/`** to view the **Chronicle Enterprise Web Console**:
-1. **Action Telemetry**: Live stream of intercepted actions, risk tiers, and mode status.
-2. **Step-Up Approvals**: Interactive human sponsor review for transactions on `HOLD`.
-3. **Policy Studio**: Declarative DSL editor, syntax validator, and AST preview.
-4. **Shadow Policy Comparator**: Side-by-side comparison of active vs proposed policies on historical traffic.
-5. **Behavior Analytics**: Statistical Z-score profiles, tool distributions, and security incidents.
-6. **Agent Registry**: Agent lifecycle, risk tiers, allowed capabilities, and quarantine kill switches.
-7. **Delegation Graph**: Visual delegation hierarchy and monotonic privilege narrowing.
-8. **Cryptographic Ledger & Provenance DAG**: Merkle receipt inspector and end-to-end provenance graph tracer.
+Navigate to **`http://localhost:3000/`** to interact with the **Chronicle Enterprise Web Console**.
 
 ---
 
-## 20. Contributing to Chronicle: Call for Pull Requests & RFCs
+## 14. Production Deployment & Kubernetes Configuration
 
-We welcome contributions from systems engineers, cryptographers, AI researchers, and cybersecurity architects across the globe!
+For production enterprise deployments, Chronicle is packaged as lightweight, multi-stage container images:
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                   COMMUNITY CONTRIBUTOR CALL TO ACTION                 │
-│                                                                        │
-│ We believe zero-trust runtime control is the missing foundational tier │
-│ for safe, autonomous AI. Whether you want to add an eBPF syscall probe,│
-│ an AWS KMS HSM signer, an OpenTelemetry exporter, or a new MCP adapter,│
-│ your contributions are deeply appreciated!                             │
-└────────────────────────────────────────────────────────────────────────┘
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chronicle-control-plane
+  namespace: security-kernel
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chronicle-control-plane
+  template:
+    metadata:
+      labels:
+        app: chronicle-control-plane
+    spec:
+      containers:
+      - name: control-plane
+        image: chronicle/control-plane:1.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PERSISTENCE_MODE
+          value: "postgresql"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: chronicle-db-credentials
+              key: connection-string
+        - name: CONTROL_PLANE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: chronicle-crypto-keys
+              key: ed25519-private-key
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
 ```
 
+---
+
+## 15. Contributing to Chronicle: Community RFCs & Pull Requests
+
+We welcome contributions from systems engineers, cryptographers, AI researchers, and cybersecurity architects!
+
 ### High-Priority Contribution Areas (Good First Issues & RFCs)
-- [ ] **Hardware Security Modules (HSM)**: PKCS#11 and AWS CloudHSM / HashiCorp Vault key providers for Ring 0 root keys.
-- [ ] **eBPF System Call Interceptors**: Kernel-level probes to monitor container processes spawned by local agents.
-- [ ] **OpenTelemetry Exporters**: Native OTel trace and span propagation for authorization decisions.
-- [ ] **Pre-built MCP Adapters**: Pre-configured defense envelopes for Snowflake, GitHub, Salesforce, and Datadog MCP servers.
-- [ ] **Wasm Policy Plugins**: Compiling declarative DSL policies down to WebAssembly for sub-100-microsecond edge evaluation.
+- [ ] **Hardware Security Modules (HSM)**: Cloud KMS (AWS KMS, GCP Cloud KMS, Azure Key Vault) and PKCS#11 hardware signers for Ring 0 root keys.
+- [ ] **eBPF System Call Interceptors**: Kernel-level probes to monitor container processes spawned by local coding agents.
+- [ ] **OpenTelemetry Distributed Tracing**: Native OTel trace and span propagation for authorization decisions.
+- [ ] **Pre-built MCP Adapters**: Defense profiles for Snowflake, GitHub, GitLab, Salesforce, and Datadog MCP servers.
+- [ ] **Wasm Policy Engine**: Compiling declarative DSL policies down to WebAssembly for sub-50-microsecond edge evaluation.
 
-### How to Submit a Pull Request (PR)
-
-1. **Fork the Repository**:
-   ```bash
-   git clone https://github.com/SwaRaaaj/CHRONICLE.git
-   cd CHRONICLE
-   ```
-
-2. **Create a Feature Branch**:
-   ```bash
-   git checkout -b feat/my-new-security-feature
-   ```
-
-3. **Verify All Tests Pass Locally**:
-   ```bash
-   npm test
-   npm run test:attacks
-   npm run test:dsl
-   ```
-
-4. **Commit with Conventional Commits**:
-   ```bash
-   git commit -m "feat(crypto): add support for Ed25519-ph pre-hashed signatures"
-   ```
-
-5. **Push and Open a Pull Request**:
-   - Navigate to [`https://github.com/SwaRaaaj/CHRONICLE/pulls`](https://github.com/SwaRaaaj/CHRONICLE/pulls).
-   - Fill out the PR template with motivation, architecture changes, and test results.
-   - Tag `@SwaRaaaj` for review.
+Refer to [`CONTRIBUTING.md`](CONTRIBUTING.md) for full pull request submission guidelines and developer workflows.
 
 ---
 
-## 21. License & Attribution
+## 16. Security Vulnerability Disclosure Policy
+
+If you discover a security vulnerability or bypass in Chronicle's zero-trust kernel, please **do not open a public GitHub issue**.
+
+Directly contact our security architecture team:
+- **Security Contact**: **Swaraj** ([swaraj@chronicle.security](mailto:swaraj@chronicle.security))
+- **Response SLA**: Acknowledgment within 24 hours; patch coordinated within 72 hours.
+
+---
+
+## 17. Frequently Asked Questions (FAQ)
+
+<details>
+<summary><b>Why not use standard AWS IAM or OAuth 2.0 scopes?</b></summary>
+<br/>
+Static scopes answer whether an agent <i>can</i> call a tool, not whether it <i>should</i> call it given current state, cumulative spend, prior actions, and task intent. Chronicle provides real-time behavior-aware, sequence-aware runtime gating that static IAM cannot deliver.
+</details>
+
+<details>
+<summary><b>Does Chronicle add latency to agent interactions?</b></summary>
+<br/>
+No. Chronicle evaluates actions in <b>0.71 ms to 1.34 ms</b>. Compared to LLM token generation latencies (500 ms - 4,000 ms), Chronicle's overhead is undetectable.
+</details>
+
+<details>
+<summary><b>Does Chronicle require an LLM in the authorization loop?</b></summary>
+<br/>
+No. Chronicle’s Ring 1 authorization gates are purely deterministic mathematical algorithms, lattice checks, DFAs, and cryptographic verifiers. Placing an LLM in the loop would introduce non-determinism, hallucinations, and high latency.
+</details>
+
+<details>
+<summary><b>How does Chronicle prevent Time-of-Check to Time-of-Use (TOCTOU) attacks?</b></summary>
+<br/>
+Chronicle uses RFC 8785 JSON Canonicalization Scheme (JCS) to hash parameters deterministically and bind that hash inside an Ed25519-signed ephemeral grant token. Downstream tools recompute the hash from the HTTP body and reject execution if any parameter has been altered.
+</details>
+
+---
+
+## 18. License & Attribution
 
 - **Founder & Principal Systems Architect:** **Swaraj**  
 - **Project:** Chronicle Autonomous Action Control Plane (AACT)  
 - **License:** Apache License 2.0  
 - **Core Mission:** *Empower AI agents with meaningful autonomy while mathematically bounding their real-world blast radius.*
+
+<div align="center">
+<br/>
+<sub>Chronicle AACT is maintained with pride by <b>Swaraj</b> and the open-source cybersecurity community.</sub>
+</div>
