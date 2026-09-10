@@ -14,6 +14,9 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge&logo=github)](CONTRIBUTING.md)
 [![Architect](https://img.shields.io/badge/Architect-Swaraj-ec4899.svg?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://swaraaaj.github.io/CHRONICLE/)
+[![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7.svg?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/SwaRaaaj/CHRONICLE)
+[![Deploy with Vercel](https://img.shields.io/badge/Deploy%20with-Vercel-black.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/SwaRaaaj/CHRONICLE)
 
 <br/><br/>
 
@@ -22,8 +25,9 @@
   <a href="#3-high-level-system-topology"><img src="https://img.shields.io/badge/🏛️_Architecture-0f172a?style=flat-square" alt="Architecture" /></a>
   <a href="#11-adversarial-attack-neutralization-matrix-1414-verified"><img src="https://img.shields.io/badge/🛡️_Attack_Matrix-0f172a?style=flat-square" alt="Attack Matrix" /></a>
   <a href="#9-complete-rest-api-reference"><img src="https://img.shields.io/badge/⚡_REST_API-0f172a?style=flat-square" alt="REST API" /></a>
+  <a href="#16-production-deployment--cloud-hosting-options"><img src="https://img.shields.io/badge/🌐_Live_Deploy-0f172a?style=flat-square" alt="Live Deploy" /></a>
   <a href="#13-quickstart--local-deployment-guide"><img src="https://img.shields.io/badge/🚀_Quickstart-0f172a?style=flat-square" alt="Quickstart" /></a>
-  <a href="#15-contributing-to-chronicle-community-rfcs--pull-requests"><img src="https://img.shields.io/badge/🤝_Contributing-0f172a?style=flat-square" alt="Contributing" /></a>
+  <a href="#17-contributing-to-chronicle-community-rfcs--pull-requests"><img src="https://img.shields.io/badge/🤝_Contributing-0f172a?style=flat-square" alt="Contributing" /></a>
 </p>
 
 ---
@@ -1163,7 +1167,21 @@ For enterprise security operations centers running Datadog, Splunk, or Prometheu
 
 ---
 
-## 16. Production Deployment & Kubernetes Configuration
+## 16. Production Deployment & Cloud Hosting Options
+
+### 16.1 Live Cloud Deployments & Instant Launch
+
+Chronicle provides multi-target automated cloud deployments:
+
+| Deployment Target | Environment / Platform | Live Access / One-Click Link | Architecture Model |
+|---|---|---|---|
+| 🌐 **GitHub Pages** | Static Edge CDN | [**Launch Live Web App**](https://swaraaaj.github.io/CHRONICLE/) | Cybernetic HUD with client-side zero-trust simulation fallback & pen-test engine |
+| 🚀 **Render Web Service** | Cloud Managed Node.js | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SwaRaaaj/CHRONICLE) | Full central HTTP server with REST APIs, WebSocket, and real-time Merkle ledger |
+| ▲ **Vercel** | Serverless Edge | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SwaRaaaj/CHRONICLE) | Global edge serverless function routing & static web console |
+| 🚂 **Railway** | Ephemeral Container | [Deploy on Railway](https://railway.app/new/template?template=https://github.com/SwaRaaaj/CHRONICLE) | Isolated container service orchestrated via `railway.json` & `Dockerfile` |
+| 🐳 **Docker Container** | OCI Alpine Container | `docker run -p 3000:3000 swaraj/chronicle:latest` | Zero-dependency micro-container running compiled ES modules on Node 22 |
+
+### 16.2 Kubernetes Manifest & Helm Deployment
 
 For production enterprise deployments, Chronicle is packaged as lightweight, multi-stage container images:
 
