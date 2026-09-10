@@ -46,6 +46,14 @@ export class DelegationManager {
     return this.agents.get(agentId);
   }
 
+  public listAgents(): AgentIdentity[] {
+    return Array.from(this.agents.values());
+  }
+
+  public listSponsors(): HumanSponsor[] {
+    return Array.from(this.sponsors.values());
+  }
+
   public setAgentStatus(agentId: AgentId, status: AgentIdentity['status']): boolean {
     const agent = this.agents.get(agentId);
     if (!agent) return false;

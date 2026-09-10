@@ -1,0 +1,19 @@
+{
+  "name": "@chronicle/cli",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "aact": "./bin/aact.ts"
+  },
+  "dependencies": {
+    "@chronicle/core-types": "workspace:*",
+    "@chronicle/crypto-primitives": "workspace:*",
+    "@chronicle/delegation-manager": "workspace:*",
+    "@chronicle/sequence-detector": "workspace:*",
+    "@chronicle/policy-engine": "workspace:*",
+    "@chronicle/audit-ledger": "workspace:*",
+    "@chronicle/blast-radius": "workspace:*",
+    "@chronicle/policy-dsl": "workspace:*",
+    "@chronicle/sdk": "workspace:*"
+  }
+}

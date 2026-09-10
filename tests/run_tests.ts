@@ -28,6 +28,7 @@ import {
   analyzePolicyCoverage
 } from '@chronicle/policy-dsl';
 import { IdempotentEventBus } from '@chronicle/event-bus';
+import { ChronicleClient } from '@chronicle/sdk';
 import { ChronicleControlPlane } from '../apps/control-plane/src/index.ts';
 import type { ActionRequest, AuthorizationReceipt, PolicyTestCase, ControlPlaneEvent } from '@chronicle/core-types';
 
@@ -905,6 +906,41 @@ async function runTestSuite() {
     assert.strictEqual(pub2.published, false);
     assert.strictEqual(pub2.deduplicated, true);
     assert.strictEqual(dispatchCount, 1);
+  });
+
+  console.log('\n\x1b[1m9. Developer Client SDK & Anti-TOCTOU Grant Verification (§80)\x1b[0m');
+
+  await it('verifies cryptographic grants locally in SDK and detects parameter tampering', () => {
+    const { publicKey, privateKey } = generateEd25519KeyPair();
+    const sdk = new ChronicleClient({
+      endpoint: 'http://localhost:3000',
+      tenantId: 'tenant_acme',
+      controlPlanePublicKey: publicKey
+    });
+
+    const legitParams = { amount: 250, chargeId: 'ch_sdk_1' };
+    const grant = createAuthorizationGrant(
+      'grant_sdk_test',
+      'act_sdk_test',
+      'tenant_acme',
+      'agent_sdk',
+      'stripe_refund',
+      'stripe_refund',
+      'ch_sdk_1',
+      canonicalHash(legitParams),
+      'del_root',
+      privateKey,
+      60
+    );
+
+    // Legitimate verification succeeds
+    const checkValid = sdk.verifyGrant(grant, 'stripe_refund', legitParams);
+    assert.strictEqual(checkValid.valid, true);
+
+    // Tampered parameters ($250 -> $25,000) rejected by SDK
+    const checkTampered = sdk.verifyGrant(grant, 'stripe_refund', { amount: 25000, chargeId: 'ch_sdk_1' });
+    assert.strictEqual(checkTampered.valid, false);
+    assert(checkTampered.reason?.includes('PARAMETERS_TAMPERED'));
   });
 
   console.log(`\n\x1b[32m\x1b[1mALL ${passedTests}/${totalTests} TESTS PASSED CLEANLY!\x1b[0m\n`);
