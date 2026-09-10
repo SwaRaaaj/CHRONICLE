@@ -92,7 +92,8 @@
 
 | Specification Metric | Architectural Standard |
 |---|---|
-| **Founder & Principal Systems Architect** | **Swaraj** |
+| **Founder & Principal Systems Architect** | **Swaraj** ([layekswaraj09@gmail.com](mailto:layekswaraj09@gmail.com)) |
+| **Primary Contact Email** | [`layekswaraj09@gmail.com`](mailto:layekswaraj09@gmail.com) |
 | **System Classification** | Autonomous Action Control Plane (AACT) / Zero-Trust AI Agent Kernel |
 | **Official Repository** | [`https://github.com/SwaRaaaj/CHRONICLE`](https://github.com/SwaRaaaj/CHRONICLE) |
 | **Canonical Cryptography Standards** | **RFC 8785** (JSON Canonicalization Scheme - JCS)<br/>**RFC 8032** (Edwards-Curve Digital Signature Algorithm - Ed25519)<br/>**RFC 6962** (Certificate Transparency Append-Only Merkle Hash Trees) |
@@ -1233,7 +1234,7 @@ Refer to [`CONTRIBUTING.md`](CONTRIBUTING.md) for full pull request submission g
 If you discover a security vulnerability or bypass in Chronicle's zero-trust kernel, please **do not open a public GitHub issue**.
 
 Directly contact our security architecture team:
-- **Security Contact**: **Swaraj** ([swaraj@chronicle.security](mailto:swaraj@chronicle.security))
+- **Security Contact**: **Swaraj** ([layekswaraj09@gmail.com](mailto:layekswaraj09@gmail.com))
 - **Response SLA**: Acknowledgment within 24 hours; patch coordinated within 72 hours.
 
 ---
@@ -1268,12 +1269,13 @@ Chronicle uses RFC 8785 JSON Canonicalization Scheme (JCS) to hash parameters de
 
 ## 20. License & Attribution
 
-- **Founder & Principal Systems Architect:** **Swaraj**  
+- **Founder & Principal Systems Architect:** **Swaraj** ([layekswaraj09@gmail.com](mailto:layekswaraj09@gmail.com))  
+- **Primary Contact Email:** [`layekswaraj09@gmail.com`](mailto:layekswaraj09@gmail.com)  
 - **Project:** Chronicle Autonomous Action Control Plane (AACT)  
 - **License:** Apache License 2.0  
 - **Core Mission:** *Empower AI agents with meaningful autonomy while mathematically bounding their real-world blast radius.*
 
 <div align="center">
 <br/>
-<sub>Chronicle AACT is maintained with pride by <b>Swaraj</b> and the open-source cybersecurity community.</sub>
+<sub>Chronicle AACT is maintained with pride by <b>Swaraj</b> (<a href="mailto:layekswaraj09@gmail.com">layekswaraj09@gmail.com</a>) and the open-source cybersecurity community.</sub>
 </div>

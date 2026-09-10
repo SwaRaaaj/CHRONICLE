@@ -121,11 +121,11 @@ When opening a PR, include this checklist in your description:
 
 If you discover a security vulnerability or bypass in Chronicle's zero-trust kernel, please **do not open a public GitHub issue**. Instead, email our security team directly:
 
-- **Security Contact:** **Swaraj** ([swaraj@chronicle.security](mailto:swaraj@chronicle.security) or reach out via GitHub security advisories)
+- **Security Contact:** **Swaraj** ([layekswaraj09@gmail.com](mailto:layekswaraj09@gmail.com) or reach out via GitHub security advisories)
 - Please provide a minimal reproducible script demonstrating the bypass. We will acknowledge receipt within 24 hours and coordinate responsible disclosure.
 
 ---
 
 ## Attribution & Acknowledgments
 
-Chronicle was created and architected by **Swaraj**. We thank all open-source contributors and security researchers helping make autonomous AI safe, predictable, and trustworthy!
+Chronicle was created and architected by **Swaraj** ([layekswaraj09@gmail.com](mailto:layekswaraj09@gmail.com)). We thank all open-source contributors and security researchers helping make autonomous AI safe, predictable, and trustworthy!
