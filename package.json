@@ -2,7 +2,7 @@
   "name": "chronicle",
   "version": "1.0.0",
   "description": "Chronicle: Autonomous Action Control Plane (AACT) for AI Agents",
-  "author": "Swaraj <layekswaraj09@gmail.com>",
+  "author": "Swaraj",
   "private": true,
   "type": "module",
   "workspaces": [
