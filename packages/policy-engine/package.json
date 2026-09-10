@@ -1,0 +1,13 @@
+{
+  "name": "@chronicle/policy-engine",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@chronicle/core-types": "*",
+    "@chronicle/crypto-primitives": "*",
+    "@chronicle/delegation-manager": "*",
+    "@chronicle/sequence-detector": "*"
+  }
+}
