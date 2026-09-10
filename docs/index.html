@@ -690,6 +690,178 @@
       transform: translateY(-1px);
     }
 
+    .preset-pill-btn.active {
+      background: rgba(99, 102, 241, 0.35);
+      border-color: #818cf8;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(99, 102, 241, 0.45);
+    }
+
+    /* USER GUIDE & INTUITIVE ONBOARDING BANNER */
+    .user-guide-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 0 20px rgba(99, 102, 241, 0.05);
+    }
+
+    .user-guide-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .user-guide-pill {
+      font-size: 10px;
+      font-weight: 800;
+      color: #818cf8;
+      background: rgba(99, 102, 241, 0.18);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .user-guide-heading {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .user-guide-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .user-guide-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 9px;
+    }
+
+    .guide-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .guide-card:hover {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);
+    }
+
+    .guide-card.highlight {
+      background: rgba(6, 182, 212, 0.08);
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+
+    .guide-card.highlight:hover {
+      background: rgba(6, 182, 212, 0.18);
+      border-color: var(--cyan-primary);
+      box-shadow: 0 4px 14px var(--cyan-glow);
+    }
+
+    .guide-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .guide-card.highlight .guide-num {
+      background: var(--cyan-primary);
+      color: black;
+    }
+
+    .guide-card-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .guide-card-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* CYBER TOAST NOTIFICATIONS */
+    .toast-container {
+      position: fixed;
+      bottom: 64px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 99999;
+      pointer-events: none;
+    }
+
+    .cyber-toast {
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--accent-primary);
+      border-radius: 9px;
+      padding: 9px 15px;
+      color: var(--text-primary);
+      font-size: 11.5px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      max-width: 380px;
+    }
+
+    .cyber-toast.toast-success {
+      border-color: var(--success);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px var(--success-glow);
+    }
+
+    .cyber-toast.toast-danger {
+      border-color: var(--danger);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px var(--danger-glow);
+    }
+
+    .cyber-toast.toast-warning {
+      border-color: var(--warning);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px var(--warning-glow);
+    }
+
+    @keyframes toastSlideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
     /* FILTER PILLS */
     .filter-group {
       display: flex;
@@ -1107,8 +1279,52 @@
         <!-- MODULE 1: INTERACTIVE ACTION SANDBOX & GATEWAY            -->
         <!-- ========================================================= -->
         <div id="view-sandbox" class="view-panel active">
-          <div class="panel-box" style="padding: 22px;">
-            <div class="panel-box-header" style="padding: 0 0 16px 0;">
+          <div class="panel-box" style="padding: 20px;">
+            <!-- Interactive User Guide & Quick Tour -->
+            <div class="user-guide-banner">
+              <div class="user-guide-top">
+                <div>
+                  <div class="user-guide-pill">&#10024; INTERACTIVE ZERO-TRUST DEMO</div>
+                  <div class="user-guide-heading">How Chronicle Autonomous Action Gating Works</div>
+                  <div class="user-guide-sub">Click any scenario card below to test real-time mathematical blast-radius boundaries in 1 click:</div>
+                </div>
+                <button class="btn-action btn-success" style="padding: 6px 14px; font-size: 11px;" onclick="runAllAttacksFromBanner()">
+                  <span>&#128737; Run 14-Attack Pen-Test Suite &rarr;</span>
+                </button>
+              </div>
+              <div class="user-guide-cards">
+                <div class="guide-card" onclick="loadSandboxPreset('refund_legitimate')">
+                  <div class="guide-num">1</div>
+                  <div>
+                    <div class="guide-card-title">&#128179; Legitimate $50 Refund</div>
+                    <div class="guide-card-desc">Within $1,000 threshold &rarr; <span style="color: var(--success); font-weight:700;">ALLOW + Ed25519 Grant</span></div>
+                  </div>
+                </div>
+                <div class="guide-card" onclick="loadSandboxPreset('refund_high_value')">
+                  <div class="guide-num">2</div>
+                  <div>
+                    <div class="guide-card-title">&#9888; $3,500 Step-Up Refund</div>
+                    <div class="guide-card-desc">Exceeds threshold &rarr; <span style="color: var(--warning); font-weight:700;">HOLD &rarr; Step-Up Desk</span></div>
+                  </div>
+                </div>
+                <div class="guide-card" onclick="loadSandboxPreset('pii_exfil')">
+                  <div class="guide-num">3</div>
+                  <div>
+                    <div class="guide-card-title">&#128680; PII Exfiltration Leak</div>
+                    <div class="guide-card-desc">PII read + outbound email &rarr; <span style="color: var(--danger); font-weight:700;">DENY + Sequence Trap</span></div>
+                  </div>
+                </div>
+                <div class="guide-card highlight" onclick="switchTab('attacks')">
+                  <div class="guide-num">&#9874;</div>
+                  <div>
+                    <div class="guide-card-title">14 Attack Studio</div>
+                    <div class="guide-card-desc">Test TOCTOU, Smurfing, Replay & Injections</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-box-header" style="padding: 0 0 12px 0;">
               <div>
                 <h2>Interactive Action Dispatcher & Verification Gateway</h2>
                 <p>Construct, dispatch, and evaluate real agent tool invocations with live cryptographic grant verification.</p>
@@ -1116,7 +1332,7 @@
             </div>
 
             <!-- Pipeline Breadcrumb -->
-            <div class="topology-pipeline" style="margin-top: 14px; margin-bottom: 16px;">
+            <div class="topology-pipeline" style="margin-top: 8px; margin-bottom: 14px;">
               <span class="pipeline-step active">1. Agent Delegation</span>
               <span class="pipeline-arrow">&rarr;</span>
               <span class="pipeline-step active">2. RFC 8785 JCS Digest</span>
@@ -1128,23 +1344,26 @@
               <span class="pipeline-step active">5. Ed25519 Signed Grant</span>
             </div>
 
-            <!-- Quick Presets -->
-            <div style="margin-bottom: 18px;">
-              <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-right: 8px;">Quick Scenarios:</span>
-              <div style="display: inline-flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
-                <button class="preset-pill-btn" onclick="loadSandboxPreset('refund_legitimate')">&#128179; Legitimate $50 Refund (ALLOW)</button>
-                <button class="preset-pill-btn" onclick="loadSandboxPreset('refund_high_value')">&#9888; $3,500 High-Value Refund (HOLD &rarr; Step-Up)</button>
-                <button class="preset-pill-btn" onclick="loadSandboxPreset('pii_exfil')">&#128680; PII Exfiltration Attempt (DENY)</button>
-                <button class="preset-pill-btn" onclick="loadSandboxPreset('unauthorized_wire')">&#128721; Unauthorized Wire Transfer (DENY)</button>
-                <button class="preset-pill-btn" onclick="loadSandboxPreset('smurfing_probe')">&#128260; Smurfing Structuring Evasion (DENY)</button>
+            <!-- Quick Presets with 1-Click Auto Dispatch -->
+            <div style="margin-bottom: 14px; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-subtle);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">1-Click Quick Scenarios (Auto-Dispatches & Evaluates):</span>
+                <span style="font-size: 10.5px; color: #818cf8; font-weight: 600;">⚡ Instant Live Evaluation</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <button id="preset-refund_legitimate" class="preset-pill-btn active" onclick="loadSandboxPreset('refund_legitimate')">&#128179; Legitimate $50 Refund (ALLOW)</button>
+                <button id="preset-refund_high_value" class="preset-pill-btn" onclick="loadSandboxPreset('refund_high_value')">&#9888; $3,500 High-Value Refund (HOLD &rarr; Step-Up)</button>
+                <button id="preset-pii_exfil" class="preset-pill-btn" onclick="loadSandboxPreset('pii_exfil')">&#128680; PII Exfiltration Attempt (DENY)</button>
+                <button id="preset-unauthorized_wire" class="preset-pill-btn" onclick="loadSandboxPreset('unauthorized_wire')">&#128721; Unauthorized Wire Transfer (DENY)</button>
+                <button id="preset-smurfing_probe" class="preset-pill-btn" onclick="loadSandboxPreset('smurfing_probe')">&#128260; Smurfing Structuring Evasion (DENY)</button>
               </div>
             </div>
 
             <div class="grid-2">
               <!-- Left Form: Payload Builder -->
-              <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div class="grid-2">
-                  <div class="form-group">
+                  <div class="form-group" style="margin-bottom: 6px;">
                     <label>Agent Identity</label>
                     <select id="sbAgentId" class="form-control" onchange="onAgentSelectChange()">
                       <option value="agent_finance_refund">agent_finance_refund (Finance Agent)</option>
@@ -1152,7 +1371,7 @@
                       <option value="agent_infra_devops">agent_infra_devops (DevOps Agent)</option>
                     </select>
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" style="margin-bottom: 6px;">
                     <label>Tool Invocation</label>
                     <select id="sbToolName" class="form-control">
                       <option value="stripe_refund">stripe_refund</option>
@@ -1167,11 +1386,11 @@
                 </div>
 
                 <div class="grid-2">
-                  <div class="form-group">
+                  <div class="form-group" style="margin-bottom: 6px;">
                     <label>Target Resource ID</label>
                     <input type="text" id="sbResourceId" class="form-control" value="ch_44192" />
                   </div>
-                  <div class="form-group">
+                  <div class="form-group" style="margin-bottom: 6px;">
                     <label>Sensitivity Tier</label>
                     <select id="sbSensitivity" class="form-control">
                       <option value="LOW">LOW</option>
@@ -1184,20 +1403,20 @@
                   </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 8px;">
                   <label>Parameters (JSON Payload)</label>
-                  <textarea id="sbParameters" class="form-control" style="height: 110px;">{
+                  <textarea id="sbParameters" class="form-control" style="height: 68px; min-height: 60px;">{
   "chargeId": "ch_44192",
   "amount": 50,
   "reason": "customer_requested"
 }</textarea>
                 </div>
 
-                <div style="display: flex; gap: 10px;">
-                  <button class="btn-action" style="padding: 10px 20px; font-size: 13px;" onclick="dispatchSandboxAction()">
+                <div style="display: flex; gap: 8px;">
+                  <button id="btnDispatchAction" class="btn-action" style="padding: 9px 20px; font-size: 12.5px; flex: 1; justify-content: center; box-shadow: 0 0 16px var(--accent-glow);" onclick="dispatchSandboxAction()">
                     <span>&#9889; Dispatch Action to Control Plane</span>
                   </button>
-                  <button class="btn-action btn-secondary" onclick="copyCurlCommand()">
+                  <button class="btn-action btn-secondary" style="padding: 9px 14px;" onclick="copyCurlCommand()">
                     <span>Copy cURL</span>
                   </button>
                 </div>
@@ -1889,7 +2108,42 @@ REQUIRE_APPROVAL_ABOVE 2500</textarea>
       }
     }
 
-    function loadSandboxPreset(presetKey) {
+    // TOAST NOTIFICATION ENGINE
+    function showToast(message, type = 'info', title = 'SYSTEM') {
+      let container = document.getElementById('cyberToastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'cyberToastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      const toast = document.createElement('div');
+      toast.className = `cyber-toast toast-${type}`;
+      const icon = type === 'success' ? '✔' : type === 'danger' ? '✖' : type === 'warning' ? '⚠' : 'ℹ';
+      toast.innerHTML = `
+        <span style="font-weight: 800; font-size: 14px;">${icon}</span>
+        <div>
+          <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">${title}</div>
+          <div style="margin-top: 1px; line-height: 1.35;">${message}</div>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(60px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function runAllAttacksFromBanner() {
+      switchTab('attacks');
+      setTimeout(() => {
+        runAllAttacksSuite();
+      }, 300);
+    }
+
+    function loadSandboxPreset(presetKey, shouldAutoDispatch = true) {
       playBeep(580, 'sine', 0.06);
       const agentSelect = document.getElementById('sbAgentId');
       const toolSelect = document.getElementById('sbToolName');
@@ -1897,36 +2151,51 @@ REQUIRE_APPROVAL_ABOVE 2500</textarea>
       const sensSelect = document.getElementById('sbSensitivity');
       const paramsArea = document.getElementById('sbParameters');
 
+      let presetTitle = '';
       if (presetKey === 'refund_legitimate') {
+        presetTitle = 'Legitimate $50 Refund';
         agentSelect.value = 'agent_finance_refund';
         toolSelect.value = 'stripe_refund';
         resInput.value = 'ch_44192';
         sensSelect.value = 'HIGH';
         paramsArea.value = JSON.stringify({ chargeId: 'ch_44192', amount: 50, reason: 'customer_requested' }, null, 2);
       } else if (presetKey === 'refund_high_value') {
+        presetTitle = '$3,500 High-Value Refund';
         agentSelect.value = 'agent_finance_refund';
         toolSelect.value = 'stripe_refund';
         resInput.value = 'ch_99812';
         sensSelect.value = 'HIGH';
         paramsArea.value = JSON.stringify({ chargeId: 'ch_99812', amount: 3500, reason: 'enterprise_contract_cancellation' }, null, 2);
       } else if (presetKey === 'pii_exfil') {
+        presetTitle = 'PII Exfiltration Attempt';
         agentSelect.value = 'agent_support_general';
         toolSelect.value = 'send_external_email';
         resInput.value = 'msg_exfil';
         sensSelect.value = 'RESTRICTED';
         paramsArea.value = JSON.stringify({ to: 'attacker@darknet.org', body: 'PII leak payload' }, null, 2);
       } else if (presetKey === 'unauthorized_wire') {
+        presetTitle = 'Unauthorized Wire Transfer';
         agentSelect.value = 'agent_support_general';
         toolSelect.value = 'send_wire_transfer';
         resInput.value = 'wire_9921';
         sensSelect.value = 'CRITICAL';
         paramsArea.value = JSON.stringify({ destinationAccount: 'EVIL_SWIFT_ROUTING', amount: 10000 }, null, 2);
       } else if (presetKey === 'smurfing_probe') {
+        presetTitle = 'Smurfing Evasion Probe';
         agentSelect.value = 'agent_finance_refund';
         toolSelect.value = 'stripe_refund';
         resInput.value = 'ch_smurf_probe';
         sensSelect.value = 'HIGH';
         paramsArea.value = JSON.stringify({ chargeId: 'ch_smurf_probe', amount: 990, reason: 'repeated_smurf_test' }, null, 2);
+      }
+
+      // Mark active pill
+      document.querySelectorAll('.preset-pill-btn').forEach(b => b.classList.remove('active'));
+      const activePill = document.getElementById(`preset-${presetKey}`);
+      if (activePill) activePill.classList.add('active');
+
+      if (shouldAutoDispatch) {
+        dispatchSandboxAction();
       }
     }
 
@@ -1966,7 +2235,6 @@ REQUIRE_APPROVAL_ABOVE 2500</textarea>
         timestamp: new Date().toISOString()
       };
 
-      const startTime = performance.now();
       const startTime = performance.now();
       let decision = null;
       try {
@@ -2079,13 +2347,15 @@ REQUIRE_APPROVAL_ABOVE 2500</textarea>
       const params = document.getElementById('sbParameters').value.replace(/\n/g, ' ');
       const curl = `curl -X POST http://localhost:3000/api/v1/authorize -H "Content-Type: application/json" -d '{"actionId":"act_test","tenantId":"tenant_acme","sessionId":"sess_curl","taskId":"task_curl","agentId":"${agentId}","delegationId":"del_${agentId}_root","actionType":"${tool}","tool":"${tool}","resource":{"id":"${resourceId}","type":"resource","sensitivity":"HIGH","environment":"production"},"parameters":${params}}'`;
       navigator.clipboard.writeText(curl);
-      alert('Copied cURL command to clipboard!');
+      showToast('cURL action request copied to clipboard', 'success', 'CLIPBOARD');
+      playBeep(700, 'sine', 0.08);
     }
 
     function copyGrantToken() {
       if (lastDecisionResult && lastDecisionResult.grant) {
         navigator.clipboard.writeText(JSON.stringify(lastDecisionResult.grant, null, 2));
-        alert('Cryptographic Grant Token copied to clipboard!');
+        showToast('Cryptographic Ed25519 grant token copied', 'success', 'GRANT TOKEN');
+        playBeep(700, 'sine', 0.08);
       }
     }
 
@@ -2705,8 +2975,9 @@ REQUIRE_APPROVAL_ABOVE 2500</textarea>
 
     // Startup & Lifecycle
     loadAttackCatalog();
+    loadSandboxPreset('refund_legitimate', true);
     refreshData();
-    setInterval(refreshData, 3500);
+    setInterval(refreshData, 5000);
   </script>
 </body>
 </html>
