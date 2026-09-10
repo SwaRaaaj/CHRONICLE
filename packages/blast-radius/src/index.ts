@@ -124,4 +124,63 @@ export class BlastRadiusAnalyzer {
       killSwitchActive: agent.status === 'QUARANTINED'
     };
   }
+
+  /**
+   * Computes topological lateral movement attack paths and transitive reachability (§38, §79).
+   */
+  public computeAttackPaths(agentId: AgentId): AttackPathEntry[] {
+    const paths: AttackPathEntry[] = [];
+    const allDelegations = this.delegationManager.listDelegations();
+    const visitedAgents = new Set<string>();
+
+    const traverse = (currentAgentId: string, currentHop: string) => {
+      if (visitedAgents.has(currentAgentId)) return;
+      visitedAgents.add(currentAgentId);
+
+      const agentDelegations = allDelegations.filter(
+        d => d.delegateeId === currentAgentId && !d.revoked
+      );
+
+      for (const d of agentDelegations) {
+        for (const tool of d.constraints.allowedTools) {
+          const isCritical = tool.includes('wire') || tool.includes('database') || tool.includes('deploy') || tool.includes('delete');
+          const isHigh = tool.includes('refund') || tool.includes('pii') || tool.includes('crm');
+          const riskLevel: AttackPathEntry['riskLevel'] = isCritical ? 'CRITICAL' : isHigh ? 'HIGH' : 'MEDIUM';
+
+          const resources = d.constraints.resourcePatterns.length > 0 ? d.constraints.resourcePatterns : ['*'];
+          for (const res of resources) {
+            paths.push({
+              sourceAgent: currentAgentId,
+              delegationHop: d.delegationId,
+              tool,
+              targetResource: res,
+              riskLevel,
+              privilegeEscalation: currentAgentId !== agentId
+            });
+          }
+        }
+      }
+
+      // Discover downstream sub-agents
+      const childDelegations = allDelegations.filter(
+        d => d.delegatorId === currentAgentId && !d.revoked
+      );
+      for (const child of childDelegations) {
+        traverse(child.delegateeId, child.delegationId);
+      }
+    };
+
+    traverse(agentId, 'root');
+    return paths;
+  }
 }
+
+export interface AttackPathEntry {
+  sourceAgent: string;
+  delegationHop: string;
+  tool: string;
+  targetResource: string;
+  riskLevel: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  privilegeEscalation: boolean;
+}
+
