@@ -26,6 +26,10 @@ import { SequenceDetector } from '@chronicle/sequence-detector';
 import { PolicyEngine } from '@chronicle/policy-engine';
 import { AuditLedger } from '@chronicle/audit-ledger';
 import { BlastRadiusAnalyzer } from '@chronicle/blast-radius';
+import { parsePolicyDSL } from '@chronicle/policy-dsl';
+import { ATTACK_CATALOG } from './attack-catalog.ts';
+import { executeAttackVector, executeAllAttackVectors } from './attack-runner.ts';
+import { ENTERPRISE_TOOL_CATALOG } from '../../mock-enterprise-tools/src/index.ts';
 
 export class ChronicleControlPlane {
   public keyPair: KeyPair;
@@ -833,6 +837,99 @@ export class ChronicleControlPlane {
           }));
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(incidents));
+        return;
+      }
+
+      // 28. Adversarial Attack Catalog (§106, §107)
+      if (req.method === 'GET' && url.pathname === '/api/v1/attacks') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(ATTACK_CATALOG));
+        return;
+      }
+
+      // 29. Simulate Adversarial Attack Vector (§106, §107)
+      if (req.method === 'POST' && url.pathname === '/api/v1/simulate/attack') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', async () => {
+          try {
+            const payload = body ? JSON.parse(body) : {};
+            const { vectorNumber } = payload;
+            if (vectorNumber === 'all' || vectorNumber === undefined) {
+              const results = await executeAllAttackVectors(this);
+              const totalNeutralized = results.filter(r => r.blocked).length;
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: true,
+                totalExecuted: results.length,
+                totalNeutralized,
+                allNeutralized: totalNeutralized === results.length,
+                results
+              }));
+              return;
+            }
+
+            const num = Number(vectorNumber);
+            if (isNaN(num) || num < 1 || num > 14) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Vector number must be an integer between 1 and 14 or "all"' }));
+              return;
+            }
+
+            const result = await executeAttackVector(this, num);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              result,
+              results: [result],
+              totalExecuted: 1,
+              totalNeutralized: result.blocked ? 1 : 0,
+              allNeutralized: result.blocked
+            }));
+          } catch (err: unknown) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: (err as Error).message }));
+          }
+        });
+        return;
+      }
+
+      // 30. Enterprise Tool Catalog (§80, §106)
+      if (req.method === 'GET' && url.pathname === '/api/v1/tools') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(ENTERPRISE_TOOL_CATALOG));
+        return;
+      }
+
+      // 31. Policy DSL Compiler & Validator (§22, §50, §51)
+      if (req.method === 'POST' && url.pathname === '/api/v1/policies/compile') {
+        let body = '';
+        req.on('data', c => { body += c; });
+        req.on('end', () => {
+          try {
+            const { dsl } = JSON.parse(body);
+            if (!dsl || typeof dsl !== 'string') {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Missing or invalid "dsl" field' }));
+              return;
+            }
+            const ast = parsePolicyDSL(dsl);
+            const responseData = JSON.stringify({
+              valid: true,
+              policyName: ast.name || ast.policyId,
+              targetAction: ast.targetAction,
+              ast,
+              compiledAt: new Date().toISOString()
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(responseData);
+          } catch (err: unknown) {
+            if (!res.headersSent) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ valid: false, error: (err as Error).message }));
+            }
+          }
+        });
         return;
       }
 
