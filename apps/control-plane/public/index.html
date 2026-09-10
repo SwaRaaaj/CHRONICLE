@@ -47,6 +47,78 @@ html {
   scroll-behavior: smooth;
   scroll-snap-type: y mandatory;
 }
+
+/* ====================== GLOBAL ANIMATION SYSTEM ====================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(249,87,42,0.25), 0 0 40px rgba(249,87,42,0.1); }
+  50%       { box-shadow: 0 0 30px rgba(249,87,42,0.45), 0 0 60px rgba(249,87,42,0.2); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(249,87,42,0.2); }
+  50%       { border-color: rgba(249,87,42,0.5); }
+}
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+@keyframes particleFade {
+  0%   { opacity: 0; transform: translateY(0) scale(0); }
+  20%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+}
+
+/* Animate-on-scroll base state */
+.anim-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1), transform 0.75s cubic-bezier(0.16,1,0.3,1);
+}
+.anim-reveal.anim-left {
+  transform: translateX(-28px);
+}
+.anim-reveal.anim-right {
+  transform: translateX(28px);
+}
+.anim-reveal.anim-scale {
+  transform: scale(0.93);
+}
+.anim-reveal.visible {
+  opacity: 1 !important;
+  transform: none !important;
+}
+/* Stagger delays */
+.anim-d1 { transition-delay: 0.05s !important; }
+.anim-d2 { transition-delay: 0.15s !important; }
+.anim-d3 { transition-delay: 0.25s !important; }
+.anim-d4 { transition-delay: 0.35s !important; }
+.anim-d5 { transition-delay: 0.45s !important; }
+.anim-d6 { transition-delay: 0.55s !important; }
 html.in-console {
   scroll-snap-type: none !important;
 }
@@ -191,7 +263,7 @@ body {
   box-shadow: 0 6px 24px rgba(249, 87, 42, 0.55);
 }
 
-/* HERO SECTION (MATCHING SCREENSHOT 1 & 5) */
+/* HERO SECTION */
 .hero-sec {
   position: relative;
   min-height: 94vh;
@@ -202,6 +274,33 @@ body {
   text-align: center;
   padding: 130px 24px 60px;
   z-index: 1;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+/* Animated gradient title shimmer */
+.hero-title .it {
+  background: linear-gradient(90deg, #f9572a, #ff8a65, #e59324, #f9572a);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
+  font-family: var(--fi);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+/* Floating card on hero */
+.hero-stats {
+  animation: floatY 5s ease-in-out infinite;
+}
+/* Particle Canvas overlay */
+#particleCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
 }
 .hero-eyebrow {
   display: inline-flex;
@@ -236,13 +335,6 @@ body {
   max-width: 980px;
   margin-bottom: 24px;
   color: var(--tp);
-}
-.hero-title .it {
-  font-family: var(--fi);
-  font-weight: 400;
-  font-style: italic;
-  color: var(--accent-orange);
-  letter-spacing: -0.01em;
 }
 .hero-sub {
   font-size: clamp(16px, 1.8vw, 19px);
@@ -422,10 +514,11 @@ html.in-console {
 }
 .step-grid {
   display: grid;
-  grid-template-columns: 1fr 1.25fr;
-  gap: 40px;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 48px;
   align-items: flex-start;
 }
+/* Card is now LEFT col — order handled by HTML reorder below */
 .step-list-col {
   position: relative;
   padding-left: 32px;
@@ -571,7 +664,7 @@ html.in-console {
   border: 1px solid rgba(249, 87, 42, 0.3);
 }
 
-/* RIGHT COLUMN - SILKY STICKY CARD */
+/* LEFT COLUMN - SILKY STICKY CARD (now first in grid) */
 .step-card-col {
   position: sticky;
   top: 100px;
@@ -2062,87 +2155,16 @@ select.fc2 { cursor: pointer; }
   </section>
 
   <!-- ====================================================== -->
-  <!-- SECTION 2: 4-STEP INTERACTIVE WALKTHROUGH (CUSTOMIZED ZERO-TRUST STICKY SCROLL) -->
+  <!-- SECTION 2: 4-STEP INTERACTIVE WALKTHROUGH -->
   <!-- ====================================================== -->
   <section class="step-sec" id="how">
     <div class="sec-inner">
       <div class="step-grid">
-        <!-- Left: Step Titles with Connected Glowing Track -->
-        <div class="step-list-col">
-          <div class="step-track-line">
-            <div class="step-track-fill" id="stepTrackFill"></div>
-          </div>
-          <div class="step-list">
-            <div class="step-item active" onclick="jumpToStep(1)" id="st-1" data-step="1">
-              <div class="step-num">01</div>
-              <div class="step-title">Intercept &amp; Canonicalize</div>
-              <div class="step-desc-wrap">
-                <div class="step-desc-inner">
-                  <div class="step-desc">
-                    Every tool invocation is synchronously trapped before side-effects occur. Canonical RFC 8785 SHA-256 parameter hashing eliminates TOCTOU tampering and parameter injection.
-                  </div>
-                  <div class="step-tags">
-                    <span class="step-tag">RFC 8785</span>
-                    <span class="step-tag">Zero-Bypass</span>
-                    <span class="step-tag">SHA-256</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="step-item" onclick="jumpToStep(2)" id="st-2" data-step="2">
-              <div class="step-num">02</div>
-              <div class="step-title">Sequence &amp; DFA Invariants</div>
-              <div class="step-desc-wrap">
-                <div class="step-desc-inner">
-                  <div class="step-desc">
-                    Stateful automata evaluate multi-tool sequence histories across sessions to immediately sever PII exfiltration, runaway loops, and smurfing attacks.
-                  </div>
-                  <div class="step-tags">
-                    <span class="step-tag">Stateful DFA</span>
-                    <span class="step-tag">Exfil Guard</span>
-                    <span class="step-tag">Loop Severing</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="step-item" onclick="jumpToStep(3)" id="st-3" data-step="3">
-              <div class="step-num">03</div>
-              <div class="step-title">Cryptographic Grant Gating</div>
-              <div class="step-desc-wrap">
-                <div class="step-desc-inner">
-                  <div class="step-desc">
-                    If authorized, Chronicle issues an ephemeral, Ed25519-signed authorization grant strictly bound to the canonical parameter hash with a 30s TTL.
-                  </div>
-                  <div class="step-tags">
-                    <span class="step-tag">Ed25519 Curve</span>
-                    <span class="step-tag">30s TTL</span>
-                    <span class="step-tag">Single-Use Nonce</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="step-item" onclick="jumpToStep(4)" id="st-4" data-step="4">
-              <div class="step-num">04</div>
-              <div class="step-title">Merkle Provenance Audit</div>
-              <div class="step-desc-wrap">
-                <div class="step-desc-inner">
-                  <div class="step-desc">
-                    Every decision is immutably recorded into a forward-secure Merkle audit ledger with complete DAG provenance from human sponsor to executed tool.
-                  </div>
-                  <div class="step-tags">
-                    <span class="step-tag">Merkle Root</span>
-                    <span class="step-tag">DAG Provenance</span>
-                    <span class="step-tag">Forward Secure</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>        <!-- Right: Interactive Zero-Trust Engine Card -->
-        <div class="step-card-col">
-          <div class="step-card" id="securityInspectorCard">
-            <!-- Laser scan beam effect -->
-            <div class="laser-scanner" id="laserScanner"></div>
 
+        <!-- LEFT: Interactive Zero-Trust Engine Card -->
+        <div class="step-card-col anim-reveal anim-left">
+          <div class="step-card" id="securityInspectorCard">
+            <div class="laser-scanner" id="laserScanner"></div>
             <div class="sc-header">
               <div class="sc-meta-group">
                 <span class="sc-pulse-dot"></span>
@@ -2153,10 +2175,7 @@ select.fc2 { cursor: pointer; }
                 <span>Simulate In-Flight Intercept</span>
               </button>
             </div>
-
-            <!-- Zero-Trust Runtime Gateway Visualizer (Domain-Specific for Chronicle AACT!) -->
             <div class="zt-visualizer" id="ztVisualizer">
-              <!-- Mode 1: Intercept & Canonicalize -->
               <div class="zt-stage-panel active" id="zt-stage-1">
                 <div class="zt-packet-header">
                   <span class="zt-badge-source">&#129302; AGENT_FINANCE</span>
@@ -2174,8 +2193,6 @@ select.fc2 { cursor: pointer; }
                   <div class="zt-ms-item"><span class="zt-ms-l">NORMALIZATION</span><span class="zt-ms-v">DETERMINISTIC</span></div>
                 </div>
               </div>
-
-              <!-- Mode 2: Sequence & DFA Invariants -->
               <div class="zt-stage-panel" id="zt-stage-2">
                 <div class="zt-dfa-graph">
                   <div class="dfa-node active"><span class="dfa-n-id">S0</span><span class="dfa-n-t">INIT</span></div>
@@ -2197,8 +2214,6 @@ select.fc2 { cursor: pointer; }
                   <div class="zt-ms-item"><span class="zt-ms-l">SESSION RISK</span><span class="zt-ms-v ok">CONTAINED</span></div>
                 </div>
               </div>
-
-              <!-- Mode 3: Cryptographic Grant Gating -->
               <div class="zt-stage-panel" id="zt-stage-3">
                 <div class="zt-crypto-box">
                   <div class="crypto-seal-badge">
@@ -2221,8 +2236,6 @@ select.fc2 { cursor: pointer; }
                   <div class="zt-ms-item"><span class="zt-ms-l">ZERO-BYPASS</span><span class="zt-ms-v ok">ENFORCED</span></div>
                 </div>
               </div>
-
-              <!-- Mode 4: Merkle Provenance Audit -->
               <div class="zt-stage-panel" id="zt-stage-4">
                 <div class="merkle-chain-strip">
                   <div class="m-block"><span class="mb-idx">#8818</span><span class="mb-h">0x3a9f...</span></div>
@@ -2243,34 +2256,94 @@ select.fc2 { cursor: pointer; }
                 </div>
               </div>
             </div>
-
-            <!-- Action Inspection Box -->
             <div class="demo-action-box" id="demoActionBox">
               <div class="dab-row"><span class="dab-label">Agent ID:</span><span class="dab-val" id="dab-agt">agent_finance_refund</span></div>
               <div class="dab-row"><span class="dab-label">Action / Tool:</span><span class="dab-code" id="dab-tool">stripe_refund</span></div>
               <div class="dab-row"><span class="dab-label">Canonical Hash:</span><span class="dab-val" id="dab-hash" style="color:#ff9e80">sha256:4f8e...b921</span></div>
               <div class="dab-row"><span class="dab-label">Decision Status:</span><span class="badge bAL" id="dab-dec">ALLOW (VERIFIED)</span></div>
             </div>
-
-            <!-- Format / Capability Pills -->
             <div class="sc-pills" id="scPills">
               <span class="sc-pill on">RFC 8785</span>
               <span class="sc-pill on">Ed25519</span>
               <span class="sc-pill on">DFA Automata</span>
               <span class="sc-pill on">Merkle Root</span>
             </div>
-
             <button class="btn-orange-pill" style="width:100%; justify-content:center; padding:13px; font-size:14px; gap:8px;" onclick="enterConsole()">
               <span>Explore in Action Sandbox</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
-
             <div class="sc-bottom-meta">
               Zero-trust runtime gating &bull; Monotonic privilege narrowing &bull; Sub-millisecond latency
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- RIGHT: Step Titles with Connected Glowing Track -->
+        <div class="step-list-col anim-reveal anim-right">
+          <div class="step-track-line">
+            <div class="step-track-fill" id="stepTrackFill"></div>
+          </div>
+          <div class="step-list">
+            <div class="step-item active" onclick="jumpToStep(1)" id="st-1" data-step="1">
+              <div class="step-num">01</div>
+              <div class="step-title">Intercept &amp; Canonicalize</div>
+              <div class="step-desc-wrap">
+                <div class="step-desc-inner">
+                  <div class="step-desc">Every tool invocation is synchronously trapped before side-effects occur. Canonical RFC 8785 SHA-256 parameter hashing eliminates TOCTOU tampering and parameter injection.</div>
+                  <div class="step-tags">
+                    <span class="step-tag">RFC 8785</span>
+                    <span class="step-tag">Zero-Bypass</span>
+                    <span class="step-tag">SHA-256</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step-item" onclick="jumpToStep(2)" id="st-2" data-step="2">
+              <div class="step-num">02</div>
+              <div class="step-title">Sequence &amp; DFA Invariants</div>
+              <div class="step-desc-wrap">
+                <div class="step-desc-inner">
+                  <div class="step-desc">Stateful automata evaluate multi-tool sequence histories across sessions to immediately sever PII exfiltration, runaway loops, and smurfing attacks.</div>
+                  <div class="step-tags">
+                    <span class="step-tag">Stateful DFA</span>
+                    <span class="step-tag">Exfil Guard</span>
+                    <span class="step-tag">Loop Severing</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step-item" onclick="jumpToStep(3)" id="st-3" data-step="3">
+              <div class="step-num">03</div>
+              <div class="step-title">Cryptographic Grant Gating</div>
+              <div class="step-desc-wrap">
+                <div class="step-desc-inner">
+                  <div class="step-desc">If authorized, Chronicle issues an ephemeral, Ed25519-signed authorization grant strictly bound to the canonical parameter hash with a 30s TTL.</div>
+                  <div class="step-tags">
+                    <span class="step-tag">Ed25519 Curve</span>
+                    <span class="step-tag">30s TTL</span>
+                    <span class="step-tag">Single-Use Nonce</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="step-item" onclick="jumpToStep(4)" id="st-4" data-step="4">
+              <div class="step-num">04</div>
+              <div class="step-title">Merkle Provenance Audit</div>
+              <div class="step-desc-wrap">
+                <div class="step-desc-inner">
+                  <div class="step-desc">Every decision is immutably recorded into a forward-secure Merkle audit ledger with complete DAG provenance from human sponsor to executed tool.</div>
+                  <div class="step-tags">
+                    <span class="step-tag">Merkle Root</span>
+                    <span class="step-tag">DAG Provenance</span>
+                    <span class="step-tag">Forward Secure</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /step-grid -->
 
       <!-- Bottom Step Breadcrumbs -->
       <div class="step-breadcrumbs">
@@ -4241,12 +4314,114 @@ window.addEventListener('resize', () => {
   if (S.tab === 'blast') computeBlast();
 });
 
+/* =========================================================
+   SCROLL REVEAL — IntersectionObserver
+   ========================================================= */
+function initScrollReveal() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('visible');
+        obs.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.anim-reveal').forEach(el => obs.observe(el));
+}
+
+/* =========================================================
+   STATS TICKER — animated number counting on hero
+   ========================================================= */
+function initStatsTicker() {
+  const stats = [
+    { id: 'hs-lat', start: 0.1, end: 0.4, suffix: 'ms', dec: 1 },
+    { id: 'hs-acts', start: 900, end: 1307, suffix: '', dec: 0, fmt: true }
+  ];
+  function animateNum(el, start, end, suffix, dec, fmt) {
+    const dur = 1800, step = 16;
+    let t = 0;
+    const iv = setInterval(() => {
+      t += step;
+      const prog = Math.min(t / dur, 1);
+      const eased = 1 - Math.pow(1 - prog, 3);
+      const val = start + (end - start) * eased;
+      const disp = fmt ? Math.round(val).toLocaleString() : val.toFixed(dec);
+      el.textContent = disp + suffix;
+      if (prog >= 1) clearInterval(iv);
+    }, step);
+  }
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        stats.forEach(s => {
+          const el = document.getElementById(s.id);
+          if (el) animateNum(el, s.start, s.end, s.suffix, s.dec || 0, s.fmt);
+        });
+        obs.disconnect();
+      }
+    });
+  }, { threshold: 0.3 });
+  const heroStats = document.querySelector('.hero-stats');
+  if (heroStats) obs.observe(heroStats);
+}
+
+/* =========================================================
+   CARD TILT — subtle 3D perspective on step-card hover
+   ========================================================= */
+function initCardTilt() {
+  const card = document.getElementById('securityInspectorCard');
+  if (!card) return;
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    card.style.transform = `perspective(900px) rotateY(${x * 5}deg) rotateX(${-y * 4}deg) scale(1.01)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+  // Also tilt cream-cards
+  document.querySelectorAll('.cream-card').forEach(c => {
+    c.addEventListener('mousemove', e => {
+      const r = c.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      c.style.transform = `perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 4}deg) translateY(-3px)`;
+    });
+    c.addEventListener('mouseleave', () => { c.style.transform = ''; });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initWalkthroughScroll();
   initScrollReveal();
   initStatsTicker();
   initCardTilt();
   selectStep(1, false);
+
+  // Add anim-reveal classes to hero children for staggered entrance
+  const heroEyebrow = document.querySelector('.hero-eyebrow');
+  const heroTitle = document.querySelector('.hero-title');
+  const heroSub = document.querySelector('.hero-sub');
+  const heroCtas = document.querySelector('.hero-ctas');
+  const heroStats = document.querySelector('.hero-stats');
+  const scrollInd = document.querySelector('.scroll-indicator');
+
+  [heroEyebrow, heroTitle, heroSub, heroCtas, heroStats, scrollInd].forEach((el, i) => {
+    if (!el) return;
+    el.classList.add('anim-reveal', `anim-d${i + 1}`);
+  });
+  // Re-observe newly marked elements
+  initScrollReveal();
+
+  // Add anim-reveal to other sections
+  document.querySelectorAll('.cream-card, .cream-title, .wm-content, .pricing-grid > *, .atk-section-header').forEach((el, i) => {
+    if (!el.classList.contains('anim-reveal')) {
+      el.classList.add('anim-reveal', `anim-d${(i % 4) + 1}`);
+    }
+  });
+  initScrollReveal();
 });
 </script>
 </body>
