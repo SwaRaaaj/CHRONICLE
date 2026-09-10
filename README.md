@@ -196,6 +196,45 @@ Inspired by CPU hardware protection rings (Ring 0 through Ring 3), Chronicle est
  ═══════════════════════════════════════════════════════════════════════════════
 ```
 
+```mermaid
+flowchart TB
+    classDef r0 fill:#042f2e,stroke:#14b8a6,stroke-width:2px,color:#fff;
+    classDef r1 fill:#082f49,stroke:#0ea5e9,stroke-width:2px,color:#fff;
+    classDef r2 fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
+    classDef r3 fill:#27272a,stroke:#71717a,stroke-width:2px,color:#fff;
+
+    subgraph R0["<b>RING 0: Hardware Root of Trust & Human Authority</b>"]
+        HSM["Hardware Security Modules (HSM) / KMS Ed25519 Keys"]
+        SPONSOR["Human Sponsors (CISO, Controllers, Engineering Directors)"]
+    end
+    class R0 r0;
+
+    subgraph R1["<b>RING 1: Chronicle AACT Kernel & Cryptographic Ledger</b>"]
+        LATTICE["Monotonic Privilege Narrowing Invariant Engine (D_c ⊑ D_p)"]
+        DFA["Stateful Action Sequence DFA (Anti-Exfiltration Automaton)"]
+        VELOCITY["Rolling-Window Cumulative Velocity & Runaway Loop Breaker"]
+        SIGNER["RFC 8032 Ed25519 Grant Signer & RFC 6962 Merkle Hash Ledger"]
+    end
+    class R1 r1;
+
+    subgraph R2["<b>RING 2: Security Gateways & Proxy Interceptors</b>"]
+        MCP_GW["Model Context Protocol (MCP) Reverse Proxy Gateway (:3001)"]
+        CANON["RFC 8785 Canonical JSON Parameter Binding & Anti-TOCTOU Verifier"]
+        SDK_KERNEL["Client SDK Local Grant Verification Kernel (@chronicle/sdk)"]
+    end
+    class R2 r2;
+
+    subgraph R3["<b>RING 3: Untrusted Autonomous Agents & Enterprise Tools</b>"]
+        AGENTS["Autonomous Reasoning Cores (Claude 3.7, GPT-4o, Gemini 2.5, Swarms)"]
+        TOOLS["Protected Enterprise Endpoints (Stripe, SWIFT, AWS IAM, PostgreSQL)"]
+    end
+    class R3 r3;
+
+    R0 -->|1. Issues Root Delegation Envelopes D_0| R1
+    R1 -->|2. Emits Signed Ephemeral Grants| R2
+    R2 -->|3. Proxies Authenticated Calls with Proof Headers| R3
+```
+
 ---
 
 ## 3. High-Level System Topology
@@ -395,7 +434,7 @@ flowchart LR
 
 Chronicle enforces deterministic parameter canonicalization:
 
-$$h_{\text{params}} = \text{"sha256:"} \parallel \text{Hex}\Big(\text{SHA-256}\big(\text{JCS}(P)\big)\Big)$$
+$$h_{\text{params}} = \text{"sha256:"} \parallel \text{Hex}\left(\text{SHA-256}\left(\text{JCS}(P)\right)\right)$$
 
 Downstream enterprise microservices recompute $h_{\text{params}}$ directly from the received HTTP body. If a single character or parameter key order is altered, verification fails immediately with `PARAMETERS_TAMPERED`.
 
@@ -404,34 +443,24 @@ Downstream enterprise microservices recompute $h_{\text{params}}$ directly from 
 ### 5.3 Stateful Sequence Automata & Cross-Tool Exfiltration DFA
 
 ```mermaid
-stateDiagram-v2
-    [*] --> S0_Clean: Session Initialized
+flowchart TD
+    classDef clean fill:#022c22,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef tainted fill:#451a03,stroke:#f59e0b,stroke-width:2px,color:#fff;
+    classDef trap fill:#450a0a,stroke:#ef4444,stroke-width:3px,color:#fff;
+    classDef terminal fill:#1e293b,stroke:#64748b,stroke-width:1px,color:#cbd5e1;
 
-    S0_Clean --> S1_PII_Contaminated: read_customer_pii
-    S0_Clean --> S0_Clean: search_catalog
+    START((Start)) --> S0["<b>S0: Clean Session State</b><br/>• Normal agent operations<br/>• Catalog search, status queries"]:::clean
+    S0 -->|read_customer_pii| S1["<b>S1: PII Contaminated Context</b><br/>• Session memory tainted with sensitive PII<br/>• Outbound transmission tools armed with tripwires"]:::tainted
+    S0 -->|search_catalog| S0
 
-    state "S1: PII Contaminated State" as S1_PII_Contaminated {
-        note right of S1_PII_Contaminated
-            Context tainted with Sensitive PII.
-            Outbound transmission tools are armed with tripwires.
-        end note
-        S1_PII_Contaminated --> S1_PII_Contaminated: calculate_discount
-    }
+    S1 -->|calculate_discount| S1
+    S1 -->|verify_card_token| S1
 
-    S1_PII_Contaminated --> Trap_Exfiltration: Attempt send_external_email
-    S1_PII_Contaminated --> Trap_Exfiltration: Attempt post_slack_webhook
-    S1_PII_Contaminated --> Trap_Exfiltration: Attempt s3_bulk_export
+    S1 -->|send_external_email| TRAP["<b>S2: Security Violation Trapped</b><br/>• FORBIDDEN_SEQUENCE tripwire fired<br/>• Action Gate: DENY<br/>• Risk Score: 95/100<br/>• Agent Auto-Quarantined"]:::trap
+    S1 -->|post_slack_webhook| TRAP
+    S1 -->|s3_bulk_export| TRAP
 
-    state "S2: Security Violation Trapped" as Trap_Exfiltration {
-        note left of Trap_Exfiltration
-            Tripwire Triggered!
-            Action DENIED (FORBIDDEN_SEQUENCE)
-            Risk Score = 95
-            Agent Auto-Quarantined
-        end note
-    }
-
-    Trap_Exfiltration --> [*]: Incident Emitted to Merkle Ledger
+    TRAP --> END((Incident Emitted to Merkle Ledger)):::terminal
 ```
 
 Chronicle evaluates the sequence state of the session before approving an action. When a forbidden sequence is attempted, the state automaton transitions to a trap state and returns `FORBIDDEN_SEQUENCE`.
@@ -442,9 +471,9 @@ Chronicle evaluates the sequence state of the session before approving an action
 
 To defeat structuring attacks ("smurfing"), Chronicle computes cumulative velocity across a rolling temporal window $W$:
 
-$$\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) = \sum_{a \in \mathcal{H}_{\text{task}}} \Big\{ a.\text{parameters}.\text{amount} \;\Big|\; a.\text{decision} = \text{"ALLOW"} \;\wedge\; (t_{\text{now}} - a.\text{timestamp}) \le W \Big\}$$
+$$\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) = \sum_{a \in \mathcal{H}_{\text{task}}} a.\text{parameters}.\text{amount} \quad \text{where } a.\text{decision} = \text{"ALLOW"} \;\wedge\; (t_{\text{now}} - a.\text{timestamp}) \le W$$
 
-$$\text{If } \Big(\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) + \text{current}.\text{amount}\Big) > D.\text{constraints}.\text{cumulativeValueLimit} \implies \mathbf{DENY}(\text{CUMULATIVE-LIMIT-EXCEEDED})$$
+$$\text{If } \left(\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) + \text{current}.\text{amount}\right) > D.\text{constraints}.\text{cumulativeValueLimit} \implies \mathbf{DENY}(\text{CUMULATIVE-LIMIT-EXCEEDED})$$
 
 ---
 
@@ -452,7 +481,7 @@ $$\text{If } \Big(\mathcal{S}_{\text{cumul}}(t_{\text{now}}, W) + \text{current}
 
 When an LLM enters an infinite tool loop, Chronicle's invocation counter trips a circuit breaker over a 15-second window:
 
-$$\text{Count}\Big( a_i \mid a_i.\text{tool} = \text{tool}_{\text{curr}} \;\wedge\; a_i.\text{hash} = \text{hash}_{\text{curr}} \;\wedge\; (t_{\text{now}} - t_i) \le 15\text{s} \Big) \ge 5 \implies \mathbf{DENY}(\text{RUNAWAY-LOOP-DETECTED})$$
+$$\text{Count}\left(\{ a_i \mid a_i.\text{tool} = \text{tool}_{\text{curr}} \;\wedge\; a_i.\text{hash} = \text{hash}_{\text{curr}} \;\wedge\; (t_{\text{now}} - t_i) \le 15\text{s} \}\right) \ge 5 \implies \mathbf{DENY}(\text{RUNAWAY-LOOP-DETECTED})$$
 
 ---
 
@@ -469,10 +498,13 @@ Where:
 - $H(S) \in [0, 40]$: Sequence hazard bonus from the stateful DFA.
 - $\mathcal{A}(Z) \in [0, 30]$: Statistical anomaly penalty derived from behavioral $Z$-score.
 
-**Action Gate Mapping**:
-- $\mathcal{R} < 40$: **ALLOW** (Signed Ephemeral Grant issued).
-- $40 \le \mathcal{R} \le 75$: **HOLD** (Step-Up Human Sponsor review required).
-- $\mathcal{R} > 75$: **DENY** (Execution blocked, incident recorded).
+#### Multi-Factor Action Gate Decision Matrix
+
+| Risk Tier | Risk Score $\mathcal{R}$ | Action Gate | Systemic Outcome | Cryptographic & Audit Artifact |
+|:---:|:---:|:---:|---|---|
+| 🟢 **LOW RISK** | $0 \le \mathcal{R} < 40$ | `ALLOW` | Single-use ephemeral grant emitted immediately | Signed Ed25519 Token (60s TTL, Nonce, JCS Hash) |
+| 🟡 **ELEVATED RISK** | $40 \le \mathcal{R} \le 75$ | `HOLD` | Execution suspended; queued for human sponsor review | Interactive Step-Up Challenge in Web Console |
+| 🔴 **CRITICAL RISK** | $75 < \mathcal{R} \le 100$ | `DENY` | Execution rejected immediately; security violation logged | Tamper-Evident Merkle Ledger Incident Block |
 
 ---
 
@@ -520,7 +552,7 @@ $$\mathcal{H}_i = \text{"sha256:"} \parallel \text{Hex}\left(\text{SHA-256}\left
 \parallel \text{policyVersion} \parallel \text{riskScore} \parallel \text{reasonCodes} \parallel \text{parametersHash} \parallel \text{timestamp}
 \end{array}\right)\right)$$
 
-$$\text{Signature}_i = \text{Sign}_{\text{Ed25519}}\Big(\mathcal{H}_i, \;\text{PrivKey}_{\text{ControlPlane}}\Big)$$
+$$\text{Signature}_i = \text{Sign}_{\text{Ed25519}}\left(\mathcal{H}_i, \;\text{PrivKey}_{\text{ControlPlane}}\right)$$
 
 ---
 
@@ -542,6 +574,22 @@ $$\text{Signature}_i = \text{Sign}_{\text{Ed25519}}\Big(\mathcal{H}_i, \;\text{P
 - **Exfiltration Tripwires**: Enforces immediate isolation if sensitive data reading is followed by outbound transmission tools.
 
 ### 6.4 Formal Workflow Engine & State Machine (`packages/workflow-engine`)
+
+```mermaid
+flowchart TD
+    classDef normal fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#fff;
+    classDef blocked fill:#450a0a,stroke:#ef4444,stroke-width:2px,color:#fff;
+    classDef allowed fill:#022c22,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef terminal fill:#1e293b,stroke:#64748b,stroke-width:1px,color:#cbd5e1;
+
+    W0((Dispatched)) --> S_OPEN["<b>1. TICKET_OPEN</b><br/>• Allowed: search_knowledge_base<br/>• Blocked: stripe_refund, send_email"]:::normal
+    S_OPEN -->|Agent Ingests Context| S_INV["<b>2. INVESTIGATING</b><br/>• Allowed: read_crm, check_order_status<br/>• Blocked: stripe_refund"]:::normal
+    S_INV -->|Restitution Calculated| S_REQ["<b>3. REFUND_REQUESTED</b><br/>⚠️ stripe_refund STRICTLY BLOCKED<br/>• Prerequisite: FRAUD_CHECK_PASSED"]:::blocked
+    S_REQ -->|Event: FRAUD_CHECK_PASSED| S_APP["<b>4. APPROVED</b><br/>• stripe_refund ALLOWED<br/>• Ed25519 Grant Signed"]:::allowed
+    S_APP -->|Execute Side-Effect| S_EXEC["<b>5. REFUND_EXECUTED</b><br/>• Merkle Receipt Committed"]:::allowed
+    S_EXEC --> W_END((Workflow Closed)):::terminal
+```
+
 - **State-Aware Action Gates**: Links authorization to entity lifecycles (`DRAFT`, `PENDING_APPROVAL`, `APPROVED`, `EXECUTED`).
 - **Deterministic Business Invariants**:
   - *Conservation of Value*: Refund amounts cannot exceed original payment minus prior refunds.
@@ -730,20 +778,20 @@ Chronicle includes a dedicated adversarial attack test harness ([`tests/attack-s
 
 | # | Attack Vector Name | Threat Scenario | Chronicle Defense Mechanism | Cryptographic / Systemic Evidence | Status |
 |:---:|---|---|---|---|:---:|
-| **1** | **Parameter Tampering (TOCTOU)** | Agent alters amount from $100 to $10,000 post-check | RFC 8785 Canonical Hash Parameter Binding | `Cryptographic grant rejected: PARAMETERS_TAMPERED: hash mismatch` | **NEUTRALIZED** |
-| **2** | **Expired Grant Replay** | Replaying valid grant after TTL expires | Microsecond Ephemeral Grant TTL Verification | `Cryptographic grant rejected: GRANT_EXPIRED` | **NEUTRALIZED** |
-| **3** | **Prompt Injection Intent Drift** | LLM persuaded to invoke wire transfer | Declared Delegation Intent Boundary Enforcement | `Tool 'send_wire_transfer' not authorized by delegation envelope` | **NEUTRALIZED** |
-| **4** | **Cross-Tool Exfiltration** | PII Read followed immediately by External Email | Stateful Action Sequence DFA Automaton | `Forbidden sequence detected: [read_pii -> send_external_email]` | **NEUTRALIZED** |
-| **5** | **Monotonic Privilege Escalation** | Sub-agent requests privileges greater than parent | Mathematical Monotonic Lattice Verifier ($D_c \sqsubseteq D_p$) | `Monotonic narrowing violation: child requests unauthorized tool` | **NEUTRALIZED** |
-| **6** | **Smurfing / Structuring Attack** | 20 small transactions to evade $1,000 threshold | Rolling-Window Cumulative Velocity Engine | `Cumulative transaction sum ($10,850) exceeds cumulative limit` | **NEUTRALIZED** |
-| **7** | **Emergency Agent Quarantine** | Rogue agent active; kill-switch activated | Zero-Latency Blast Radius Quarantine Gate | `Agent 'agent_finance_refund' is under active security quarantine` | **NEUTRALIZED** |
-| **8** | **Stale Delegation Reuse** | Invoking tools using expired delegation envelope | Clock-Aware Temporal Validity Window ($[t_{\text{start}}, t_{\text{end}}]$) | `Delegation expired at 2026-09-10T08:05:39.148Z` | **NEUTRALIZED** |
-| **9** | **Cross-Tenant Impersonation** | Agent in Tenant A attempts action in Tenant B | Cryptographic Multi-Tenant Isolation Boundary | `Cross-tenant violation: delegation tenant does not match request` | **NEUTRALIZED** |
-| **10** | **Cross-Task Cumulative Abuse** | Agent switches tasks to reset cumulative limits | Global Per-Delegation Lifetime Spend Tracking | `Cross-task cumulative limit ($10,450 > $10,000) strictly blocked` | **NEUTRALIZED** |
-| **11** | **Consumed Nonce Double-Spend** | Replaying consumed single-use grant token | Nonce Consumption Cache & Single-Use Enforcement | `Grant replay blocked: nonce already consumed` | **NEUTRALIZED** |
-| **12** | **Resource Traversal Abuse** | Accessing out-of-scope production cluster | Delegation Resource Pattern Glob Boundary | `Resource 'k8s:prod-cluster' does not match patterns: [cust:*]` | **NEUTRALIZED** |
-| **13** | **Circular Delegation Abuse** | Agent delegating to parent to create loop | Delegation Hierarchy DAG Lookup Guard | `Circular delegation rejected: Parent delegation not found` | **NEUTRALIZED** |
-| **14** | **Runaway Agent Loop Burst** | Degenerate LLM loop firing 15 calls in 5 seconds | Stateful Burst Rate-Limiter & Loop Circuit Breaker | `Tool abuse burst detected: 15 rapid calls in 30s window` | **NEUTRALIZED** |
+| **1** | **Parameter Tampering (TOCTOU)** | Agent alters amount from $100 to $10,000 post-check | RFC 8785 Canonical Hash Parameter Binding | `Cryptographic grant rejected: PARAMETERS_TAMPERED: hash mismatch` | 🛡️ **PASSED** |
+| **2** | **Expired Grant Replay** | Replaying valid grant after TTL expires | Microsecond Ephemeral Grant TTL Verification | `Cryptographic grant rejected: GRANT_EXPIRED` | 🛡️ **PASSED** |
+| **3** | **Prompt Injection Intent Drift** | LLM persuaded to invoke wire transfer | Declared Delegation Intent Boundary Enforcement | `Tool 'send_wire_transfer' not authorized by delegation envelope` | 🛡️ **PASSED** |
+| **4** | **Cross-Tool Exfiltration** | PII Read followed immediately by External Email | Stateful Action Sequence DFA Automaton | `Forbidden sequence detected: [read_pii -> send_external_email]` | 🛡️ **PASSED** |
+| **5** | **Monotonic Privilege Escalation** | Sub-agent requests privileges greater than parent | Mathematical Monotonic Lattice Verifier ($D_c \sqsubseteq D_p$) | `Monotonic narrowing violation: child requests unauthorized tool` | 🛡️ **PASSED** |
+| **6** | **Smurfing / Structuring Attack** | 20 small transactions to evade $1,000 threshold | Rolling-Window Cumulative Velocity Engine | `Cumulative transaction sum ($10,850) exceeds cumulative limit` | 🛡️ **PASSED** |
+| **7** | **Emergency Agent Quarantine** | Rogue agent active; kill-switch activated | Zero-Latency Blast Radius Quarantine Gate | `Agent 'agent_finance_refund' is under active security quarantine` | 🛡️ **PASSED** |
+| **8** | **Stale Delegation Reuse** | Invoking tools using expired delegation envelope | Clock-Aware Temporal Validity Window ($[t_{\text{start}}, t_{\text{end}}]$) | `Delegation expired at 2026-09-10T08:05:39.148Z` | 🛡️ **PASSED** |
+| **9** | **Cross-Tenant Impersonation** | Agent in Tenant A attempts action in Tenant B | Cryptographic Multi-Tenant Isolation Boundary | `Cross-tenant violation: delegation tenant does not match request` | 🛡️ **PASSED** |
+| **10** | **Cross-Task Cumulative Abuse** | Agent switches tasks to reset cumulative limits | Global Per-Delegation Lifetime Spend Tracking | `Cross-task cumulative limit ($10,450 > $10,000) strictly blocked` | 🛡️ **PASSED** |
+| **11** | **Consumed Nonce Double-Spend** | Replaying consumed single-use grant token | Nonce Consumption Cache & Single-Use Enforcement | `Grant replay blocked: nonce already consumed` | 🛡️ **PASSED** |
+| **12** | **Resource Traversal Abuse** | Accessing out-of-scope production cluster | Delegation Resource Pattern Glob Boundary | `Resource 'k8s:prod-cluster' does not match patterns: [cust:*]` | 🛡️ **PASSED** |
+| **13** | **Circular Delegation Abuse** | Agent delegating to parent to create loop | Delegation Hierarchy DAG Lookup Guard | `Circular delegation rejected: Parent delegation not found` | 🛡️ **PASSED** |
+| **14** | **Runaway Agent Loop Burst** | Degenerate LLM loop firing 15 calls in 5 seconds | Stateful Burst Rate-Limiter & Loop Circuit Breaker | `Tool abuse burst detected: 15 rapid calls in 30s window` | 🛡️ **PASSED** |
 
 ---
 
