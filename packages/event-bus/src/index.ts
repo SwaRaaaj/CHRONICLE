@@ -81,10 +81,12 @@ export class IdempotentEventBus {
           await result;
         }
       } catch (err: unknown) {
-        console.error(
-          `[IdempotentEventBus] Error in event handler for '${event.eventType}' (EventId: ${event.eventId}):`,
-          err
-        );
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(
+            `[IdempotentEventBus] Error in event handler for '${event.eventType}' (EventId: ${event.eventId}):`,
+            err
+          );
+        }
       }
     }
 
