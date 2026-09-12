@@ -29,6 +29,7 @@ import { PolicyEngine } from '@chronicle/policy-engine';
 import { AuditLedger } from '@chronicle/audit-ledger';
 import { BlastRadiusAnalyzer } from '@chronicle/blast-radius';
 import { parsePolicyDSL } from '@chronicle/policy-dsl';
+import { ObservationEngine } from '@chronicle/observation';
 import { ATTACK_CATALOG } from './attack-catalog.ts';
 import { executeAttackVector, executeAllAttackVectors } from './attack-runner.ts';
 import { ENTERPRISE_TOOL_CATALOG } from '../../mock-enterprise-tools/src/index.ts';
@@ -40,6 +41,7 @@ export class ChronicleControlPlane {
   public policyEngine: PolicyEngine;
   public auditLedger: AuditLedger;
   public blastRadiusAnalyzer: BlastRadiusAnalyzer;
+  public observationEngine: ObservationEngine;
 
   private approvals: Map<string, ApprovalRequest> = new Map();
   private totalActionsProcessed: number = 0;
@@ -66,6 +68,7 @@ export class ChronicleControlPlane {
     );
     this.auditLedger = new AuditLedger(this.keyPair.privateKey, this.keyPair.publicKey);
     this.blastRadiusAnalyzer = new BlastRadiusAnalyzer(this.delegationManager);
+    this.observationEngine = new ObservationEngine(this.mode);
 
     this.seedDefaultEnvironment();
   }
@@ -285,18 +288,24 @@ export class ChronicleControlPlane {
       timestamp: request.timestamp
     });
 
-    // 6. In observation mode: override blocking decisions to ALLOW but tag as OBSERVED
-    if (this.mode === 'observation' && (decision.decision === 'DENY' || decision.decision === 'HOLD')) {
-      return {
-        ...decision,
-        decision: 'ALLOW' as const,
-        reasonCodes: ['POLICY_PERMIT'],
-        explanation: `[OBSERVATION MODE] Would have been ${decision.decision}: ${decision.explanation}`,
-        observationNote: `Original decision: ${decision.decision}. System is in observation mode — no enforcement.`
-      };
-    }
-
-    return decision;
+    // 6. Route through Observation Engine (§3): in observation mode, blocking decisions are
+    // suppressed to ALLOW for shadow telemetry while the real reason codes are preserved for review.
+    return this.observationEngine.processDecision(request, decision, () => {
+      const grantId = 'grant_' + Math.random().toString(36).substring(2, 12);
+      return createAuthorizationGrant(
+        grantId,
+        request.actionId,
+        request.tenantId,
+        request.agentId,
+        request.actionType,
+        request.tool,
+        request.resource.id,
+        canonicalHash(request.parameters),
+        request.delegationId,
+        this.keyPair.privateKey,
+        60
+      );
+    });
   }
 
   /**
@@ -346,7 +355,10 @@ export class ChronicleControlPlane {
   }
 
   public getMode(): 'enforcement' | 'observation' { return this.mode; }
-  public setMode(mode: 'enforcement' | 'observation'): void { this.mode = mode; }
+  public setMode(mode: 'enforcement' | 'observation'): void {
+    this.mode = mode;
+    this.observationEngine.setMode(mode);
+  }
 
   public getStatus(): {
     status: string;
@@ -380,8 +392,13 @@ export class ChronicleControlPlane {
   /**
    * Create Node HTTP Server to serve API and Dashboard UI.
    */
-  public createHttpServer(port: number = 3000): http.Server {
-    const server = http.createServer(async (req, res) => {
+  /**
+   * The raw (req, res) request listener, decoupled from any particular hosting
+   * mechanism so it can back a standalone http.Server (local/Railway/Render)
+   * or be re-exported directly as a Vercel serverless function handler.
+   */
+  public getRequestHandler(): (req: http.IncomingMessage, res: http.ServerResponse) => Promise<void> {
+    return async (req, res) => {
       const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
 
       // CORS
@@ -606,6 +623,19 @@ export class ChronicleControlPlane {
         return;
       }
 
+      // 13b. Observation Mode shadow telemetry (§3, §30)
+      if (req.method === 'GET' && url.pathname === '/api/v1/observation/summary') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(this.observationEngine.getSummary()));
+        return;
+      }
+
+      if (req.method === 'GET' && url.pathname === '/api/v1/observation/events') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(this.observationEngine.getEvents()));
+        return;
+      }
+
       // 14. Agent Registry — List all agents (§79)
       if (req.method === 'GET' && url.pathname === '/api/v1/agents') {
         const agents = this.delegationManager.listAgents();
@@ -691,12 +721,14 @@ export class ChronicleControlPlane {
             const allowedTools = Array.isArray(data.allowedTools)
               ? data.allowedTools
               : (data.allowedTools ? String(data.allowedTools).split(',').map((s: string) => s.trim()).filter(Boolean) : ['*']);
-            const allowedResourcePatterns = Array.isArray(data.allowedResourcePatterns)
-              ? data.allowedResourcePatterns
-              : ['*'];
+            const resourcePatterns = Array.isArray(data.resourcePatterns)
+              ? data.resourcePatterns
+              : Array.isArray(data.allowedResourcePatterns)
+                ? data.allowedResourcePatterns
+                : ['*'];
             const constraints = {
               allowedTools: allowedTools.length ? allowedTools : ['*'],
-              allowedResourcePatterns,
+              resourcePatterns,
               maxTransactionValue: data.maxTransactionValue !== undefined && data.maxTransactionValue !== '' ? Number(data.maxTransactionValue) : undefined,
               cumulativeValueLimit: data.cumulativeValueLimit !== undefined && data.cumulativeValueLimit !== '' ? Number(data.cumulativeValueLimit) : undefined,
               requireApprovalAbove: data.requireApprovalAbove !== undefined && data.requireApprovalAbove !== '' ? Number(data.requireApprovalAbove) : undefined
@@ -834,8 +866,8 @@ export class ChronicleControlPlane {
               decision: h.decision as 'ALLOW' | 'DENY' | 'HOLD',
               timestamp: h.timestamp
             }));
-            const currentResult = this.policyEngine.simulatePolicy({ proposedPolicyContent: JSON.stringify(currentPolicy || {}) }, history);
-            const proposedResult = this.policyEngine.simulatePolicy({ proposedPolicyContent: JSON.stringify(proposedPolicy || {}) }, history);
+            const currentResult = this.policyEngine.simulatePolicy({ tenantId: 'tenant_acme', proposedPolicyContent: JSON.stringify(currentPolicy || {}) }, history);
+            const proposedResult = this.policyEngine.simulatePolicy({ tenantId: 'tenant_acme', proposedPolicyContent: JSON.stringify(proposedPolicy || {}) }, history);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({
               current: currentResult,
@@ -987,9 +1019,11 @@ export class ChronicleControlPlane {
 
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Endpoint not found' }));
-    });
+    };
+  }
 
-    return server;
+  public createHttpServer(port: number = 3000): http.Server {
+    return http.createServer(this.getRequestHandler());
   }
 }
 
