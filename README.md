@@ -14,6 +14,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge&logo=github)](CONTRIBUTING.md)
 [![Architect](https://img.shields.io/badge/Architect-Swaraj-ec4899.svg?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Full--Stack%20Demo-Vercel-black.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://chronicle-aact.vercel.app)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://swaraaaj.github.io/CHRONICLE/)
 [![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7.svg?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/SwaRaaaj/CHRONICLE)
 [![Deploy with Vercel](https://img.shields.io/badge/Deploy%20with-Vercel-black.svg?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/new/clone?repository-url=https://github.com/SwaRaaaj/CHRONICLE)
@@ -927,6 +928,14 @@ Performance evaluated on Node.js v24 ([`benchmarks/benchmark.ts`](file:///d:/CHR
 
 ### Prerequisites
 - Node.js `v22.6.0+` or `v24+` (native TypeScript execution via `--experimental-strip-types`)
+- [pnpm](https://pnpm.io) (the workspace uses the `workspace:*` protocol across all 16 internal `@chronicle/*` packages, which plain `npm install` does not resolve)
+
+### 0. Install Dependencies
+```bash
+corepack enable            # or: npm install -g pnpm
+pnpm install
+```
+This links every internal `@chronicle/*` package via `pnpm-workspace.yaml` and installs the two real npm dependencies (`typescript`, `esbuild`) used for type-checking and for bundling the Vercel serverless function.
 
 ### 1. Execute Test Matrix (150 Tests / 100% Pass)
 ```bash
@@ -999,12 +1008,12 @@ flowchart TD
         M2["🛡️ 14/14 Attack Studio<br/>(One-Click Pen-Test Suite & Telemetry)"]
         M3["📡 Action Telemetry Feed<br/>(Zero-Bypass Intercept Stream & Filters)"]
         M4["🛑 Step-Up Approvals Desk<br/>(Human-in-the-Loop Cryptographic Sign-Off)"]
-        M5["💥 Blast Radius Visualizer<br/>(Percolation Analysis & Dijkstra Paths)"]
+        M5["💥 Blast Radius Visualizer<br/>(Reachability Graph & Cinematic 'Simulate Compromise' Walkthrough)"]
         M6["📊 Behavioral Anomaly Radar<br/>(Gaussian Distributions & Outlier Alerts)"]
         M7["📜 Policy DSL Studio<br/>(Declarative Syntax Editor & AST Compiler)"]
         M8["⚖️ Shadow Policy Comparator<br/>(Historical Replay & Divergence Matrix)"]
         M9["👥 Agent Fleet Registry<br/>(Capability Matrix & Instant Quarantine)"]
-        M10["🔗 Merkle Audit & DAG<br/>(Causal Graph Traversal & Integrity Audit)"]
+        M10["🔗 Merkle Audit & Provenance DAG<br/>(Animated Human→Agent→Policy→Receipt Chain Inspector)"]
     end
 
     subgraph API["Chronicle Control Plane REST API (:3000)"]
@@ -1175,11 +1184,11 @@ Chronicle provides multi-target automated cloud deployments:
 
 | Deployment Target | Environment / Platform | Live Access / One-Click Link | Architecture Model |
 |---|---|---|---|
-| 🌐 **GitHub Pages** | Static Edge CDN | [**Launch Live Web App**](https://swaraaaj.github.io/CHRONICLE/) | Cybernetic HUD with client-side zero-trust simulation fallback & pen-test engine |
-| 🚀 **Render Web Service** | Cloud Managed Node.js | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SwaRaaaj/CHRONICLE) | Full central HTTP server with REST APIs, WebSocket, and real-time Merkle ledger |
-| ▲ **Vercel** | Serverless Edge | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SwaRaaaj/CHRONICLE) | Global edge serverless function routing & static web console |
-| 🚂 **Railway** | Ephemeral Container | [Deploy on Railway](https://railway.app/new/template?template=https://github.com/SwaRaaaj/CHRONICLE) | Isolated container service orchestrated via `railway.json` & `Dockerfile` |
-| 🐳 **Docker Container** | OCI Alpine Container | `docker run -p 3000:3000 swaraj/chronicle:latest` | Zero-dependency micro-container running compiled ES modules on Node 22 |
+| ▲ **Vercel** (recommended) | Serverless Node.js Function | [**chronicle-aact.vercel.app**](https://chronicle-aact.vercel.app) | Real `ChronicleControlPlane` REST API (`/api/v1/*`) running as a serverless function, bundled from `apps/control-plane/src/vercel-handler.ts` via `scripts/build-vercel-api.mjs` (esbuild) into a committed `api/index.js`. State lives in-memory per warm function instance — genuinely live authorization decisions, cryptographic grants, and a real Merkle ledger, not canned data; see [§7.1](#71-central-control-plane-server-3000) for the in-memory-vs-database tradeoff |
+| 🌐 **GitHub Pages** | Static Edge CDN | [**swaraaaj.github.io/CHRONICLE**](https://swaraaaj.github.io/CHRONICLE/) | Static copy of the same console UI with no backend — falls back to an honestly-labeled client-side "SIMULATED" telemetry mode and a local rules-based decision approximation in the Action Sandbox |
+| 🚀 **Render Web Service** | Cloud Managed Node.js | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SwaRaaaj/CHRONICLE) | Full central HTTP server (`apps/control-plane`) with REST APIs and a real-time Merkle ledger, long-running process (not serverless) |
+| 🚂 **Railway** | Ephemeral Container | [Deploy on Railway](https://railway.app/new/template?template=https://github.com/SwaRaaaj/CHRONICLE) | Isolated container service orchestrated via `railway.json` & `Dockerfile`, same long-running control-plane server |
+| 🐳 **Docker Container** | OCI Alpine Container | `docker build -t chronicle . && docker run -p 3000:3000 chronicle` | Zero-dependency micro-container running the control-plane server on Node 22 |
 
 ### 16.2 Kubernetes Manifest & Helm Deployment
 
