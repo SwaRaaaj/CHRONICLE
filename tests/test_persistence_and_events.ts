@@ -122,16 +122,17 @@ async function runPersistenceAndEventTests() {
     agentId: 'agent_persisted_1',
     tenantId: 'tenant_acme',
     name: 'Persisted Agent',
-    description: 'Testing persistence',
-    riskClass: 'LOW',
-    status: 'ACTIVE',
-    modelProvider: 'Anthropic',
-    modelName: 'Claude 3.5 Sonnet',
+    agentType: 'TEST_AGENT',
     agentVersion: '1.0.0',
+    modelProvider: 'anthropic/claude-3.5-sonnet',
+    owner: 'user_ciso_jane',
+    sponsor: 'user_ciso_jane',
+    creationTime: new Date().toISOString(),
+    status: 'ACTIVE',
+    environment: 'production',
+    riskClass: 'LOW',
     allowedCapabilities: ['refund'],
-    publicKeyPem: 'mock-key',
-    keyId: 'key-1',
-    createdAt: new Date().toISOString()
+    publicKey: 'mock-key'
   });
 
   const retrievedAgent = await adapter.getAgent('agent_persisted_1');
@@ -139,16 +140,23 @@ async function runPersistenceAndEventTests() {
 
   await adapter.saveReceipt({
     receiptId: 'rcpt_persist_1',
-    tenantId: 'tenant_acme',
     actionId: 'act_1',
+    tenantId: 'tenant_acme',
     agentId: 'agent_persisted_1',
+    sponsorId: 'user_ciso_jane',
     decision: 'ALLOW',
+    actionType: 'stripe_refund',
+    resourceId: 'ch_persist_1',
+    policyVersion: 'v1',
     riskScore: 10,
-    merkleCurrentHash: 'hash_curr_1',
-    merklePreviousHash: 'hash_prev_0',
+    reasonCodes: ['POLICY_PERMIT'],
+    explanation: 'Test receipt persistence',
+    parametersHash: 'hash_params_1',
+    previousReceiptHash: 'hash_prev_0',
+    receiptHash: 'hash_curr_1',
     signature: 'sig_1',
     timestamp: new Date().toISOString()
-  } as any);
+  });
 
   const receipts = await adapter.getReceipts();
   assert(receipts.length === 1 && receipts[0].receiptId === 'rcpt_persist_1', 'persistence adapter stores and retrieves audit receipts');
@@ -181,7 +189,7 @@ async function runPersistenceAndEventTests() {
   });
 
   const sponsor = await oidcBridge.verifyOIDCToken(mockEntraToken, 'https://login.microsoftonline.com/common/v2.0');
-  assert(sponsor.sponsorId === 'sponsor_oidc_entra_user_9981', 'OIDC bridge maps Entra ID token subject to HumanSponsor ID');
+  assert(sponsor.userId === 'sponsor_oidc_entra_user_9981', 'OIDC bridge maps Entra ID token subject to HumanSponsor ID');
   assert(sponsor.role === 'SecurityDirector', 'OIDC bridge maps Entra ID role claim to sponsor role');
   assert(sponsor.email === 'alice@enterprise.com', 'OIDC bridge preserves enterprise email identity');
 
@@ -205,11 +213,14 @@ async function runPersistenceAndEventTests() {
   };
 
   const mockDenyDecision = {
+    actionId: 'act_obs_1',
     decision: 'DENY' as const,
     riskScore: 85,
     riskClass: 'HIGH' as const,
     reasonCodes: ['POLICY_DENY' as const],
     explanation: 'Amount exceeds $5000 limit',
+    policyVersion: 'v1',
+    evaluatedAt: new Date().toISOString(),
     latencyMs: 1.0
   };
 

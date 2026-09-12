@@ -58,7 +58,7 @@ export async function executeAttackVector(
           delegationId: 'del_finance_refund_root',
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_44192', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_44192', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: legitimateParams,
           parametersHash: canonicalHash(legitimateParams),
           timestamp: new Date().toISOString()
@@ -258,7 +258,7 @@ export async function executeAttackVector(
             delegationId: smurfDelegation.delegationId,
             actionType: 'stripe_refund',
             tool: 'stripe_refund',
-            resource: { id: `ch_smurf_${i}`, type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+            resource: { id: `ch_smurf_${i}`, type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
             parameters: { chargeId: `ch_smurf_${i}`, amount: 900 },
             parametersHash: canonicalHash({ chargeId: `ch_smurf_${i}`, amount: 900 }),
             timestamp: new Date().toISOString()
@@ -276,7 +276,7 @@ export async function executeAttackVector(
           delegationId: smurfDelegation.delegationId,
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_smurf_over', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_smurf_over', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: { chargeId: 'ch_smurf_over', amount: 900 },
           parametersHash: canonicalHash({ chargeId: 'ch_smurf_over', amount: 900 }),
           timestamp: new Date().toISOString()
@@ -303,7 +303,7 @@ export async function executeAttackVector(
           delegationId: 'del_finance_refund_root',
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_rogue', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_rogue', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: { chargeId: 'ch_rogue', amount: 50 },
           parametersHash: canonicalHash({ chargeId: 'ch_rogue', amount: 50 }),
           timestamp: new Date().toISOString()
@@ -352,7 +352,7 @@ export async function executeAttackVector(
           delegationId: expiredDelegation.delegationId,
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_stale', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_stale', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: { chargeId: 'ch_stale', amount: 50 },
           parametersHash: canonicalHash({ chargeId: 'ch_stale', amount: 50 }),
           timestamp: new Date().toISOString()
@@ -426,7 +426,7 @@ export async function executeAttackVector(
           delegationId: taskDelegation.delegationId,
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_a', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_a', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: { chargeId: 'ch_a', amount: 800 },
           parametersHash: canonicalHash({ chargeId: 'ch_a', amount: 800 }),
           timestamp: new Date().toISOString()
@@ -443,7 +443,7 @@ export async function executeAttackVector(
           delegationId: taskDelegation.delegationId,
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_b', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_b', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: { chargeId: 'ch_b', amount: 800 },
           parametersHash: canonicalHash({ chargeId: 'ch_b', amount: 800 }),
           timestamp: new Date().toISOString()
@@ -502,7 +502,7 @@ export async function executeAttackVector(
           delegationId: replayDelegation.delegationId,
           actionType: 'stripe_refund',
           tool: 'stripe_refund',
-          resource: { id: 'ch_replay_sample', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+          resource: { id: 'ch_replay_sample', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
           parameters: params,
           parametersHash: canonicalHash(params),
           timestamp: new Date().toISOString()

@@ -102,7 +102,7 @@ async function runBenchmarks() {
       delegationId: 'del_finance_refund_root',
       actionType: 'stripe_refund',
       tool: 'stripe_refund',
-      resource: { id: `ch_bench_${i}`, type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+      resource: { id: `ch_bench_${i}`, type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
       parameters: params,
       parametersHash: canonicalHash(params),
       timestamp: new Date().toISOString()

@@ -5,6 +5,7 @@
  */
 
 import type { HumanSponsor } from '@chronicle/core-types';
+import { generateEd25519KeyPair } from '@chronicle/crypto-primitives';
 
 export interface OIDCProviderConfig {
   name: string;
@@ -104,20 +105,20 @@ export class OIDCFederationBridge {
    * Maps enterprise OIDC claims to Chronicle HumanSponsor identity record (§57)
    */
   public mapClaimsToSponsor(claims: OIDCClaims, provider: OIDCProviderConfig): HumanSponsor {
-    const sponsorId = `sponsor_oidc_${claims.sub.replace(/[^a-zA-Z0-9_]/g, '_')}`;
+    const userId = `sponsor_oidc_${claims.sub.replace(/[^a-zA-Z0-9_]/g, '_')}`;
     const email = claims.email || `${claims.sub}@enterprise.internal`;
     const name = claims.name || claims.email?.split('@')[0] || 'Enterprise Sponsor';
     const roles = claims.roles || claims.groups || ['AgentAdministrator'];
 
     return {
-      sponsorId,
+      userId,
       name,
       email,
       role: roles[0] || 'AgentAdministrator',
       department: 'Engineering / Operations',
       tenantId: claims.tenant || provider.defaultTenantId,
-      enrollmentMethod: 'OIDC_FEDERATED',
-      identityProvider: provider.name
-    } as any;
+      publicKey: generateEd25519KeyPair().publicKey,
+      createdAt: new Date().toISOString()
+    };
   }
 }

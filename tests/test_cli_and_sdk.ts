@@ -61,14 +61,14 @@ async function runCliAndSdkTests() {
   const tamperedParams = { amount: 50000, chargeId: 'ch_901' }; // Attacker changed $500 -> $50,000
   const tamperedCheck = client.verifyGrant(validGrant, 'stripe_refund', tamperedParams);
   assert(
-    !tamperedCheck.valid && tamperedCheck.reason?.includes('PARAMETERS_TAMPERED'),
+    !tamperedCheck.valid && (tamperedCheck.reason?.includes('PARAMETERS_TAMPERED') ?? false),
     'client detects parameter tampering and rejects execution (TOCTOU defense in SDK) (§80)'
   );
 
   // 4. Detect Tool Mismatch in SDK
   const mismatchCheck = client.verifyGrant(validGrant, 'send_wire_transfer', legitParams);
   assert(
-    !mismatchCheck.valid && mismatchCheck.reason?.includes('tool mismatch'),
+    !mismatchCheck.valid && (mismatchCheck.reason?.includes('tool mismatch') ?? false),
     'client rejects grant presented to unauthorized tool mismatch'
   );
 

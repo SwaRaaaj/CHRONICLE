@@ -95,7 +95,7 @@ async function runWorkflowEngineTests() {
   // Check action while in TICKET_OPEN
   const checkEarly = engine.checkActionAllowed(mockAction, instance);
   assert(
-    !checkEarly.allowed && checkEarly.reason?.includes('requires workflow state [APPROVED]'),
+    !checkEarly.allowed && (checkEarly.reason?.includes('requires workflow state [APPROVED]') ?? false),
     'blocks stripe_refund when workflow is in TICKET_OPEN (§43 State-Aware Authorization)'
   );
 

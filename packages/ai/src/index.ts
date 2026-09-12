@@ -149,7 +149,7 @@ export class AIPolicyAssistant {
     if (decision.decision === 'HOLD') {
       parts.push('Next Steps: Requires human sponsor review. Step-up ticket created. Temporary authorization will activate upon sponsor signature.');
     } else if (decision.decision === 'DENY') {
-      if (decision.reasonCodes.includes('QUARANTINE_DENIED')) {
+      if (decision.reasonCodes.includes('AGENT_QUARANTINED')) {
         parts.push('Security Note: Agent is under emergency quarantine. Contact security team to investigate potential compromise.');
       } else if (decision.reasonCodes.includes('MONOTONIC_NARROWING_VIOLATION')) {
         parts.push('Security Note: Privilege escalation attempt blocked. Sub-agents cannot claim privileges not held by their parent delegator.');
@@ -185,9 +185,9 @@ export class AIPolicyAssistant {
       );
     }
 
-    if (report.reachableResources.some(r => r.sensitivity === 'RESTRICTED')) {
+    if (report.reachableResources.some(r => r.sensitivity === 'CRITICAL' || r.sensitivity === 'SENSITIVE')) {
       suggestions.push(
-        `Restricted Resource Reachability: Add 'WHEN NOT resource.sensitivity == "RESTRICTED"' to guarantee sensitive data isolation.`
+        `Restricted Resource Reachability: Add 'WHEN NOT resource.sensitivity == "CRITICAL"' to guarantee sensitive data isolation.`
       );
     }
 

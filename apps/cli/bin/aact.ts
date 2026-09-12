@@ -11,6 +11,18 @@ import { parsePolicyDSL, evaluatePolicyDSL, runPolicyTests } from '@chronicle/po
 import { canonicalHash } from '@chronicle/crypto-primitives';
 import { AIPolicyAssistant } from '@chronicle/ai';
 import type { ActionRequest, PolicyTestCase, ActionContext } from '@chronicle/core-types';
+import type { ChronicleControlPlane as ChronicleControlPlaneType } from '../../control-plane/src/index.ts';
+
+/** Walks the parentDelegationId chain to compute how many hops a delegation is from its root sponsor. */
+function computeDelegationDepth(cp: ChronicleControlPlaneType, delegationId: string): number {
+  let depth = 0;
+  let current = cp.delegationManager.getDelegation(delegationId);
+  while (current?.parentDelegationId) {
+    depth++;
+    current = cp.delegationManager.getDelegation(current.parentDelegationId);
+  }
+  return depth;
+}
 
 const args = process.argv.slice(2);
 const command = args[0]?.toLowerCase();
@@ -70,7 +82,7 @@ async function main() {
       console.log('\x1b[1mCHRONICLE CONTROL PLANE STATUS (§81):\x1b[0m\n');
       console.log(`Status:              \x1b[32m${status.status.toUpperCase()}\x1b[0m`);
       console.log(`Operating Mode:      \x1b[36m${cp.getMode().toUpperCase()}\x1b[0m`);
-      console.log(`Kill Switch Active:  ${status.killSwitch ? '\x1b[31mACTIVE (GLOBAL LOCKDOWN)\x1b[0m' : '\x1b[32mINACTIVE (OPERATIONAL)\x1b[0m'}`);
+      console.log(`Kill Switch Active:  ${status.killSwitchActive ? '\x1b[31mACTIVE (GLOBAL LOCKDOWN)\x1b[0m' : '\x1b[32mINACTIVE (OPERATIONAL)\x1b[0m'}`);
       console.log(`Actions Processed:   ${status.totalActions}`);
       console.log(`Audit Receipts:      ${status.auditReceiptsCount} blocks`);
       console.log(`Ledger Integrity:    ${status.ledgerIntegrity.valid ? '\x1b[32m100% UNBROKEN\x1b[0m' : '\x1b[31mTAMPER DETECTED\x1b[0m'}`);
@@ -144,13 +156,13 @@ async function main() {
         printBanner();
         console.log(`\x1b[1mAGENT CAPABILITY PROFILE: ${agent.name} (${agentId})\x1b[0m\n`);
         console.log(`Risk Class:          ${agent.riskClass}`);
-        console.log(`Declared Model:      ${agent.modelProvider} / ${agent.modelName}`);
+        console.log(`Declared Model:      ${agent.modelProvider}`);
         console.log(`Allowed Capabilities: ${agent.allowedCapabilities.join(', ')}`);
         console.log(`\nActive Delegations (${delegations.length}):`);
         for (const d of delegations) {
           console.log(`  • [${d.delegationId}] ${d.purpose}`);
           console.log(`    Tools:    ${d.constraints.allowedTools.join(', ')}`);
-          console.log(`    Ceiling:  $${d.constraints.maxCumulativeValue || 'unlimited'}`);
+          console.log(`    Ceiling:  $${d.constraints.cumulativeValueLimit || 'unlimited'}`);
           console.log(`    Expires:  ${d.expiresAt}`);
         }
       } else {
@@ -192,11 +204,11 @@ async function main() {
         console.log(`Delegator:         ${del.delegatorId}`);
         console.log(`Delegatee:         ${del.delegateeId}`);
         console.log(`Parent Delegation: ${del.parentDelegationId || 'ROOT (None)'}`);
-        console.log(`Depth:             ${del.depth}`);
+        console.log(`Depth:             ${computeDelegationDepth(cp, del.delegationId)}`);
         console.log(`Status:            ${del.revoked ? '\x1b[31mREVOKED\x1b[0m' : '\x1b[32mACTIVE\x1b[0m'}`);
         console.log(`Allowed Tools:     ${del.constraints.allowedTools.join(', ')}`);
         console.log(`Resource Patterns: ${del.constraints.resourcePatterns.join(', ')}`);
-        console.log(`Max Cumulative:    $${del.constraints.maxCumulativeValue || 'unlimited'}`);
+        console.log(`Max Cumulative:    $${del.constraints.cumulativeValueLimit || 'unlimited'}`);
         console.log(`Expires At:        ${del.expiresAt}`);
       } else {
         printUsage();
@@ -323,14 +335,14 @@ async function main() {
           parameters: { amount: r.riskScore * 10 }, decision: r.decision, timestamp: r.timestamp
         }));
 
-        const simResult = cp.policyEngine.simulatePolicy({ proposedPolicyContent: content }, history);
+        const simResult = cp.policyEngine.simulatePolicy({ tenantId: 'tenant_acme', proposedPolicyContent: content }, history);
         printBanner();
         console.log(`\x1b[1mPOLICY HISTORICAL REPLAY SIMULATION REPORT (§52)\x1b[0m\n`);
-        console.log(`Total Actions Replayed:  ${simResult.totalActionsEvaluated}`);
+        console.log(`Total Actions Replayed:  ${simResult.totalEvaluated}`);
         console.log(`Newly Allowed Actions:   \x1b[32m${simResult.newlyAllowedCount}\x1b[0m`);
         console.log(`Newly Denied Actions:    \x1b[31m${simResult.newlyDeniedCount}\x1b[0m`);
         console.log(`Newly Held Actions:      \x1b[33m${simResult.newlyHeldCount}\x1b[0m`);
-        console.log(`Net Risk Delta:          ${simResult.netRiskDelta}`);
+        console.log(`Net Risk Delta:          ${simResult.newlyDeniedCount - simResult.newlyAllowedCount}`);
       } else {
         printUsage();
       }
@@ -397,11 +409,14 @@ async function main() {
         printBanner();
         console.log(`\x1b[1mAI DECISION EXPLANATION: Action ${receipt.actionId} (§18, §116)\x1b[0m\n`);
         const explanation = ai.explainDecision({
+          actionId: receipt.actionId,
           decision: receipt.decision,
           riskScore: receipt.riskScore,
           riskClass: receipt.riskScore > 75 ? 'CRITICAL' : receipt.riskScore > 50 ? 'HIGH' : 'LOW',
-          reasonCodes: [receipt.decision === 'ALLOW' ? 'DELEGATION_SCOPE_VERIFIED' : 'POLICY_DENY'],
-          explanation: `Action on resource ${receipt.resourceId} evaluated with Merkle hash ${receipt.merkleCurrentHash.slice(0, 16)}...`,
+          reasonCodes: [receipt.decision === 'ALLOW' ? 'POLICY_PERMIT' : 'POLICY_DENY'],
+          explanation: `Action on resource ${receipt.resourceId} evaluated with Merkle hash ${receipt.receiptHash.slice(0, 16)}...`,
+          policyVersion: receipt.policyVersion,
+          evaluatedAt: receipt.timestamp,
           latencyMs: 0.8
         });
         console.log(explanation);

@@ -38,11 +38,14 @@ async function runAIAssistantTests() {
 
   // 3. Explain decision
   const mockDecision: AuthorizationDecision = {
+    actionId: 'act_mock_1',
     decision: 'HOLD',
     riskScore: 75,
     riskClass: 'HIGH',
-    reasonCodes: ['APPROVAL_REQUIRED', 'HIGH_VALUE_TRANSACTION'],
+    reasonCodes: ['MISSING_REQUIRED_APPROVAL', 'RISK_THRESHOLD_EXCEEDED'],
     explanation: 'Transaction $3,500 exceeds autonomous approval threshold $2,500',
+    policyVersion: 'v1',
+    evaluatedAt: new Date().toISOString(),
     latencyMs: 1.2
   };
   const explanation = ai.explainDecision(mockDecision);
@@ -58,11 +61,14 @@ async function runAIAssistantTests() {
       { tool: 'k8s_delete_pod', risk: 'HIGH', maxExposure: 0 }
     ],
     reachableResources: [
-      { resourceType: 'cluster', sensitivity: 'RESTRICTED', environment: 'production' }
+      { resourceType: 'cluster', sensitivity: 'CRITICAL', countEstimate: 1 }
     ],
-    reachableDataDomains: ['infrastructure'],
-    maxPrivilegePathLength: 2,
-    generatedAt: new Date().toISOString()
+    calculatedAt: new Date().toISOString(),
+    agentStatus: 'ACTIVE',
+    directCapabilities: ['deploy_production', 'k8s_delete_pod'],
+    reachableAgents: [],
+    privilegeEscalationPaths: [],
+    killSwitchActive: false
   };
   const safeguards = ai.suggestPolicySafeguards(mockBlast);
   assert(safeguards.length >= 2, 'suggests multiple safeguard recommendations for critical blast radius');

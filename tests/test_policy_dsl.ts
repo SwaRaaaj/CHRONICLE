@@ -163,7 +163,7 @@ async function runPolicyDSLTests() {
   const orNotDsl = `
     POLICY or_not_test
     ALLOW stripe_refund
-    WHEN NOT resource.sensitivity == "RESTRICTED" AND amount <= 1000 OR workflow.state == "APPROVED"
+    WHEN NOT resource.sensitivity == "CRITICAL" AND amount <= 1000 OR workflow.state == "APPROVED"
   `;
   const orNotAst = parsePolicyDSL(orNotDsl);
   assert(orNotAst.conditions.length === 3, 'parses 3 conditions with OR/NOT tokens');
@@ -183,7 +183,7 @@ async function runPolicyDSLTests() {
   const notTestReq: ActionRequest = {
     ...mockReq,
     parameters: { amount: 500 },
-    resource: { id: 'ch_1', type: 'charge', sensitivity: 'RESTRICTED', environment: 'production' }
+    resource: { id: 'ch_1', type: 'charge', sensitivity: 'CRITICAL', environment: 'production' }
   };
   const notEval = evaluatePolicyDSL(orNotAst, notTestReq, { workflowState: 'PENDING' });
   assert(notEval.matched === false && notEval.effect === 'DENY', 'evaluates NOT negation properly to deny restricted resource');

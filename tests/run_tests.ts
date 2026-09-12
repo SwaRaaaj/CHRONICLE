@@ -514,7 +514,7 @@ async function runTestSuite() {
       delegationId: 'del_smurf',
       actionType: 'stripe_refund',
       tool: 'stripe_refund',
-      resource: { id: 'r3', type: 'refund', sensitivity: 'HIGH', environment: 'production' },
+      resource: { id: 'r3', type: 'refund', sensitivity: 'SENSITIVE', environment: 'production' },
       parameters: { amount: 800 },
       parametersHash: 'sha256:smurf',
       timestamp: new Date().toISOString()
@@ -542,7 +542,7 @@ async function runTestSuite() {
       resource: {
         id: 'charge_8812',
         type: 'charge',
-        sensitivity: 'HIGH',
+        sensitivity: 'SENSITIVE',
         environment: 'production'
       },
       parameters: { chargeId: 'ch_8812', amount: 450 },
@@ -578,7 +578,7 @@ async function runTestSuite() {
       resource: {
         id: 'charge_vip',
         type: 'charge',
-        sensitivity: 'HIGH',
+        sensitivity: 'SENSITIVE',
         environment: 'production'
       },
       parameters: { chargeId: 'ch_vip', amount: 1500 }, // > $1000 threshold
@@ -615,7 +615,7 @@ async function runTestSuite() {
       delegationId: 'del_finance_refund_root',
       actionType: 'stripe_refund',
       tool: 'stripe_refund',
-      resource: { id: 'charge_1', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+      resource: { id: 'charge_1', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
       parameters: { amount: 100 },
       parametersHash: canonicalHash({ amount: 100 }),
       timestamp: new Date().toISOString()
@@ -648,7 +648,7 @@ async function runTestSuite() {
       delegationId: 'del_finance_refund_root',
       actionType: 'stripe_refund',
       tool: 'stripe_refund',
-      resource: { id: 'charge_p', type: 'charge', sensitivity: 'HIGH', environment: 'production' },
+      resource: { id: 'charge_p', type: 'charge', sensitivity: 'SENSITIVE', environment: 'production' },
       parameters: { amount: 100 },
       parametersHash: canonicalHash({ amount: 100 }),
       timestamp: new Date().toISOString()
