@@ -5,12 +5,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@chronicle/core-types": "*",
-    "@chronicle/crypto-primitives": "*",
-    "@chronicle/delegation-manager": "*",
-    "@chronicle/sequence-detector": "*",
-    "@chronicle/policy-engine": "*",
-    "@chronicle/audit-ledger": "*",
-    "@chronicle/blast-radius": "*"
+    "@chronicle/core-types": "workspace:*",
+    "@chronicle/crypto-primitives": "workspace:*",
+    "@chronicle/delegation-manager": "workspace:*",
+    "@chronicle/sequence-detector": "workspace:*",
+    "@chronicle/policy-engine": "workspace:*",
+    "@chronicle/audit-ledger": "workspace:*",
+    "@chronicle/blast-radius": "workspace:*",
+    "@chronicle/policy-dsl": "workspace:*",
+    "@chronicle/observation": "workspace:*"
   }
 }

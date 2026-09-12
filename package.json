@@ -10,22 +10,36 @@
     "apps/*"
   ],
   "scripts": {
-    "test": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/run_tests.ts",
-    "test:attacks": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/attack-scenarios/attack_suite.ts",
-    "test:workflows": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/test_workflow_engine.ts",
-    "test:dsl": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/test_policy_dsl.ts",
-    "test:behavior": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/test_behavior_engine.ts",
-    "test:persistence": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/test_persistence_and_events.ts",
-    "test:cli": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types tests/test_cli_and_sdk.ts",
-    "aact": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/cli/bin/aact.ts",
-    "benchmark": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types benchmarks/benchmark.ts",
-    "start:control-plane": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/control-plane/src/index.ts",
-    "start:mcp-gateway": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/mcp-gateway/src/index.ts",
-    "start:mock-tools": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/mock-enterprise-tools/src/index.ts",
-    "dev": "node --preserve-symlinks --preserve-symlinks-main --experimental-strip-types apps/control-plane/src/index.ts"
+    "test": "node --experimental-strip-types tests/run_tests.ts",
+    "test:attacks": "node --experimental-strip-types tests/attack-scenarios/attack_suite.ts",
+    "test:workflows": "node --experimental-strip-types tests/test_workflow_engine.ts",
+    "test:dsl": "node --experimental-strip-types tests/test_policy_dsl.ts",
+    "test:behavior": "node --experimental-strip-types tests/test_behavior_engine.ts",
+    "test:persistence": "node --experimental-strip-types tests/test_persistence_and_events.ts",
+    "test:cli": "node --experimental-strip-types tests/test_cli_and_sdk.ts",
+    "aact": "node --experimental-strip-types apps/cli/bin/aact.ts",
+    "benchmark": "node --experimental-strip-types benchmarks/benchmark.ts",
+    "start:control-plane": "node --experimental-strip-types apps/control-plane/src/index.ts",
+    "start:mcp-gateway": "node --experimental-strip-types apps/mcp-gateway/src/index.ts",
+    "start:mock-tools": "node --experimental-strip-types apps/mock-enterprise-tools/src/index.ts",
+    "dev": "node --experimental-strip-types apps/control-plane/src/index.ts",
+    "build:vercel-api": "node scripts/build-vercel-api.mjs"
+  },
+  "dependencies": {
+    "@chronicle/audit-ledger": "workspace:*",
+    "@chronicle/blast-radius": "workspace:*",
+    "@chronicle/core-types": "workspace:*",
+    "@chronicle/crypto-primitives": "workspace:*",
+    "@chronicle/delegation-manager": "workspace:*",
+    "@chronicle/event-bus": "workspace:*",
+    "@chronicle/policy-dsl": "workspace:*",
+    "@chronicle/policy-engine": "workspace:*",
+    "@chronicle/sdk": "workspace:*",
+    "@chronicle/sequence-detector": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.3.3"
   }
 }

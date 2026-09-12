@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@chronicle/core-types": "workspace:*"
+    "@chronicle/core-types": "workspace:*",
+    "@chronicle/crypto-primitives": "workspace:*"
   }
 }

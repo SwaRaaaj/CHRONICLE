@@ -5,9 +5,11 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@chronicle/core-types": "*",
-    "@chronicle/crypto-primitives": "*",
-    "@chronicle/delegation-manager": "*",
-    "@chronicle/sequence-detector": "*"
+    "@chronicle/core-types": "workspace:*",
+    "@chronicle/crypto-primitives": "workspace:*",
+    "@chronicle/delegation-manager": "workspace:*",
+    "@chronicle/sequence-detector": "workspace:*",
+    "@chronicle/workflow-engine": "workspace:*",
+    "@chronicle/behavior-engine": "workspace:*"
   }
 }
